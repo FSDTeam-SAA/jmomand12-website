@@ -4,6 +4,8 @@ import type {
   DashboardAuctionActivity,
   Invoice,
   PickupAppointment,
+  PickupRequest,
+  PickupSchedule,
   PickupSlot,
   UpdateProfilePayload,
   UserProfile,
@@ -54,6 +56,13 @@ export async function getMyPickupAppointments() {
   return response.data.data;
 }
 
+export async function getMyPickupRequests() {
+  const response = await api.get<ApiResponse<PickupRequest[]>>(
+    "/pickup-schedules/my-requests",
+  );
+  return response.data.data;
+}
+
 export async function getMyReadyInvoices() {
   const response = await api.get<ApiResponse<Invoice[]>>("/pickups/ready-invoices");
   return response.data.data;
@@ -61,6 +70,26 @@ export async function getMyReadyInvoices() {
 
 export async function getAvailablePickupSlots() {
   const response = await api.get<ApiResponse<PickupSlot[]>>("/pickups/slots");
+  return response.data.data;
+}
+
+export async function getPickupSchedule(auctionId: string) {
+  const response = await api.get<ApiResponse<PickupSchedule>>(
+    `/pickup-schedules/${auctionId}`,
+  );
+  return response.data.data;
+}
+
+export async function createPickupScheduleRequest(payload: {
+  userId: string;
+  auctionId: string;
+  pickupDate: string;
+  pickupTime: string;
+}) {
+  const response = await api.post<ApiResponse<PickupRequest>>(
+    "/pickup-schedules",
+    payload,
+  );
   return response.data.data;
 }
 

@@ -1,5 +1,12 @@
 import { format, formatDistanceToNowStrict, isAfter, parseISO } from "date-fns";
-import type { DashboardOrder, Invoice, PickupAppointment, PickupSlot, UserProfile } from "./types";
+import type {
+  DashboardOrder,
+  Invoice,
+  PickupAppointment,
+  PickupRequest,
+  PickupSlot,
+  UserProfile,
+} from "./types";
 
 export function formatMoney(amount: number) {
   return new Intl.NumberFormat("en-US", {
@@ -75,10 +82,13 @@ export function getProfileCompletion(profile?: UserProfile) {
 export function mapOrders(
   invoices: Invoice[] | undefined,
   appointments: PickupAppointment[] | undefined,
+  pickupRequests?: PickupRequest[],
 ): DashboardOrder[] {
   if (!invoices?.length) return [];
 
   const appointmentByInvoiceId = new Map<string, PickupAppointment>();
+  const pickupRequestByAuctionId = new Map<string, PickupRequest>();
+  const pickupRequestByProductId = new Map<string, PickupRequest>();
 
   appointments?.forEach((appointment) => {
     appointment.invoices.forEach((invoice) => {
@@ -87,20 +97,38 @@ export function mapOrders(
     });
   });
 
+  pickupRequests?.forEach((request) => {
+    pickupRequestByAuctionId.set(request.auctionId._id, request);
+    if (request.auctionProductId.productId?._id) {
+      pickupRequestByProductId.set(request.auctionProductId.productId._id, request);
+    }
+  });
+
   return invoices.map((invoice) => {
     const appointment = appointmentByInvoiceId.get(invoice._id);
+    const pickupRequest = invoice.auction?._id
+      ? pickupRequestByAuctionId.get(invoice.auction._id)
+      : invoice.product?._id
+        ? pickupRequestByProductId.get(invoice.product._id)
+        : undefined;
 
     let pickupStatusLabel = "Awaiting payment";
     if (invoice.status === "paid") pickupStatusLabel = "Ready for pickup";
+    if (pickupRequest?.status === "requested") pickupStatusLabel = "Pickup requested";
+    if (pickupRequest?.status === "approved") pickupStatusLabel = "Pickup approved";
+    if (pickupRequest?.status === "scheduled") pickupStatusLabel = "Pickup scheduled";
     if (appointment?.status === "scheduled") pickupStatusLabel = "Pickup scheduled";
     if (appointment?.status === "completed") pickupStatusLabel = "Picked up";
+    if (pickupRequest?.status === "completed") pickupStatusLabel = "Picked up";
     if (appointment?.status === "cancelled") pickupStatusLabel = "Pickup cancelled";
+    if (pickupRequest?.status === "cancelled") pickupStatusLabel = "Pickup cancelled";
 
     return {
       invoice,
       appointment,
+      pickupRequest,
       pickupStatusLabel,
-      pickupActionable: invoice.status === "paid" && !appointment,
+      pickupActionable: invoice.status === "paid" && !appointment && !pickupRequest,
     };
   });
 }

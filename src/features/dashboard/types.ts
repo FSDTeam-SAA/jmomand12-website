@@ -84,6 +84,14 @@ export type PickupSlot = {
   isActive: boolean;
 };
 
+export type PickupSchedule = {
+  startDate: string;
+  endDate: string;
+  dailyStartTime: string;
+  dailyEndTime: string;
+  durationInDays: number;
+};
+
 export type PickupAppointment = {
   _id: string;
   slot?: PickupSlot;
@@ -98,9 +106,29 @@ export type PickupAppointment = {
   updatedAt: string;
 };
 
+export type PickupRequest = {
+  _id: string;
+  auctionId: AuctionSummary & {
+    auctionId?: string;
+  };
+  auctionProductId: {
+    _id: string;
+    auctionId: string;
+    productId?: Pick<ProductSummary, "_id" | "inventoryId" | "title">;
+    pickupStatus?: string;
+    paymentStatus?: string;
+  };
+  status: "requested" | "approved" | "scheduled" | "completed" | "cancelled";
+  pickupDate: string;
+  pickupTime: string;
+  createdAt: string;
+  updatedAt: string;
+};
+
 export type DashboardOrder = {
   invoice: Invoice;
   appointment?: PickupAppointment;
+  pickupRequest?: PickupRequest;
   pickupStatusLabel: string;
   pickupActionable: boolean;
 };

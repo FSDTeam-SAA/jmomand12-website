@@ -2,10 +2,12 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
+  createPickupScheduleRequest,
   getAvailablePickupSlots,
   getMyDashboardAuctionActivity,
   getMyInvoices,
   getMyPickupAppointments,
+  getMyPickupRequests,
   getMyProfile,
   getMyReadyInvoices,
   getMyWishlist,
@@ -20,6 +22,7 @@ export const dashboardKeys = {
   auctionActivity: ["dashboard", "auction-activity"] as const,
   invoices: ["dashboard", "invoices"] as const,
   appointments: ["dashboard", "appointments"] as const,
+  pickupRequests: ["dashboard", "pickup-requests"] as const,
   readyInvoices: ["dashboard", "ready-invoices"] as const,
   pickupSlots: ["dashboard", "pickup-slots"] as const,
   wishlist: ["dashboard", "wishlist"] as const,
@@ -50,6 +53,13 @@ export function useDashboardAppointments() {
   return useQuery({
     queryKey: dashboardKeys.appointments,
     queryFn: getMyPickupAppointments,
+  });
+}
+
+export function useDashboardPickupRequests() {
+  return useQuery({
+    queryKey: dashboardKeys.pickupRequests,
+    queryFn: getMyPickupRequests,
   });
 }
 
@@ -96,8 +106,23 @@ export function useSchedulePickup() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: dashboardKeys.invoices });
       queryClient.invalidateQueries({ queryKey: dashboardKeys.appointments });
+      queryClient.invalidateQueries({ queryKey: dashboardKeys.pickupRequests });
       queryClient.invalidateQueries({ queryKey: dashboardKeys.readyInvoices });
       queryClient.invalidateQueries({ queryKey: dashboardKeys.pickupSlots });
+      queryClient.invalidateQueries({ queryKey: dashboardKeys.auctionActivity });
+    },
+  });
+}
+
+export function useCreatePickupScheduleRequest() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: createPickupScheduleRequest,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: dashboardKeys.pickupRequests });
+      queryClient.invalidateQueries({ queryKey: dashboardKeys.invoices });
+      queryClient.invalidateQueries({ queryKey: dashboardKeys.readyInvoices });
       queryClient.invalidateQueries({ queryKey: dashboardKeys.auctionActivity });
     },
   });
