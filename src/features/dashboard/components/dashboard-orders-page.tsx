@@ -622,7 +622,7 @@ export function DashboardOrdersPage() {
                               isSelected
                                 ? "bg-[#fe6819] text-white shadow-sm"
                                 : day.isAvailable
-                                  ? "bg-[#ecfdf5] shadow shadow-[#047857]/20 text-[#047857] hover:bg-[#d1fae5]"
+                                  ? "bg-[#ecfdf5] shadow shadow-[#74c69d] text-[#047857] hover:bg-[#d1fae5]"
                                   : day.isCurrentMonth
                                     ? "bg-slate-50 text-slate-500"
                                     : "text-slate-300"
