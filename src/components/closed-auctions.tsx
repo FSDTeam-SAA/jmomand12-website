@@ -129,9 +129,9 @@ export default function ClosedAuctions() {
 
                     {/* Overlay badge layer */}
                     <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
-                      <div className="-rotate-12 rounded-lg bg-red-600 px-5 py-2">
+                      <div className="-rotate-12 rounded-lg bg-red-600 px-5 py-4">
                         <span className="text-base font-black text-white">
-                          Closed
+                          CLOSED
                         </span>
                       </div>
                     </div>

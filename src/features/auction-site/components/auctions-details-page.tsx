@@ -591,25 +591,25 @@ export default function AuctionProductDetailsPage() {
                         <div className="flex items-center justify-between border-b pb-2">
                           <span className="text-gray-500">Name</span>
                           <span className="font-medium">
-                            {lot.highestBid.bidder.firstName}{" "}
-                            {lot.highestBid.bidder.lastName}
+                            {lot.highestBid.bidder.firstName.slice(0,3)}{"****"}
+                            {/* {lot.highestBid.bidder.lastName} */}
                           </span>
                         </div>
 
                         <div className="flex items-center justify-between border-b pb-2">
                           <span className="text-gray-500">Email</span>
                           <span className="font-medium">
-                            {lot.highestBid.bidder.email}
+                            {lot?.highestBid?.bidder?.email?.slice(0,4)}******
                           </span>
                         </div>
 
-                        <div className="flex items-center justify-between border-b pb-2">
+                        {/* <div className="flex items-center justify-between border-b pb-2">
                           <span className="text-gray-500">Role</span>
                           <span className="font-medium capitalize">
                             {lot.highestBid.bidder.role}
                           </span>
-                        </div>
-
+                        </div> */}
+                        
                         <div className="flex items-center justify-between border-b pb-2">
                           <span className="text-gray-500">Verified</span>
                           <span
