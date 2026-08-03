@@ -98,6 +98,8 @@ interface Product {
   color: string[];
   quantity: number;
   price?: number;
+  retailPrice?: number;
+  discountPercentage?: number;
   reservePrice?: number;
   manufacturer?: string;
   averageReview: number;
@@ -589,6 +591,18 @@ export default function AuctionListingPage() {
                               <div className="text-[15px] font-black text-[#111827]">
                                 ${displayPrice ? displayPrice.toFixed(2) : "0.00"}
                               </div>
+                              {isForSale && product.retailPrice != null && (
+                                <div className="mt-1 flex items-center gap-1.5 text-[11px] font-semibold">
+                                  <span className="text-slate-400 line-through">
+                                    ${product.retailPrice.toFixed(2)}
+                                  </span>
+                                  {product.discountPercentage != null && (
+                                    <span className="text-emerald-600">
+                                      Save {product.discountPercentage}%
+                                    </span>
+                                  )}
+                                </div>
+                              )}
                             </div>
                             <div className="text-right">
                               <div className="text-[10px] text-[#9ca3af] uppercase">Condition</div>

@@ -112,6 +112,10 @@ export default function FeaturedProducts() {
                   category={product.category}
                   bids={0}
                   price={displayPrice}
+                  originalPrice={
+                    product.retailPrice ? `$${product.retailPrice.toFixed(2)}` : undefined
+                  }
+                  discountPercentage={product.discountPercentage}
                 />
               );
             })}

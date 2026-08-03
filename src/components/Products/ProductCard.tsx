@@ -12,6 +12,7 @@ type ProductCardProps = {
   bids?: number;
   price: string;
   originalPrice?: string;
+  discountPercentage?: number;
 };
 
 export default function ProductCard({
@@ -22,6 +23,7 @@ export default function ProductCard({
   bids = 0,
   price,
   originalPrice,
+  discountPercentage,
 }: ProductCardProps) {
   const router = useRouter();
 
@@ -69,6 +71,11 @@ export default function ProductCard({
             {originalPrice && (
               <span className="mt-1 text-[11px] font-medium text-slate-400 line-through leading-none">
                 {originalPrice}
+              </span>
+            )}
+            {discountPercentage != null && (
+              <span className="mt-1 text-[11px] font-bold text-emerald-600 leading-none">
+                Save {discountPercentage}%
               </span>
             )}
           </div>

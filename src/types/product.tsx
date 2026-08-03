@@ -17,6 +17,8 @@ interface InventoryProduct {
   color: string[];
   quantity: number;
   price: number;
+  retailPrice?: number;
+  discountPercentage?: number;
   manufacturer: string;
 }
 
