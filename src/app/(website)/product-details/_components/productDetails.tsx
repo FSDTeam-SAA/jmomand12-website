@@ -39,6 +39,8 @@ interface ProductDetails {
   color: string[];
   quantity: number;
   price: number;
+  retailPrice?: number;
+  discountPercentage?: number;
   manufacturer: string;
   averageReview: number;
   createdAt: string;
@@ -303,6 +305,16 @@ export default function ProductDetailsPage() {
                     <div className="text-xs text-slate-400 font-medium">Flash Price</div>
                     <div className="flex items-baseline gap-3 mt-1">
                       <span className="text-4xl font-extrabold text-[#111827]">${product?.price?.toFixed(2)}</span>
+                      {product.retailPrice && (
+                        <span className="text-sm font-medium text-slate-400 line-through">
+                          ${product.retailPrice.toFixed(2)}
+                        </span>
+                      )}
+                      {product.discountPercentage != null && (
+                        <span className="rounded bg-emerald-100 px-2 py-1 text-xs font-bold text-emerald-700">
+                          {product.discountPercentage}% OFF
+                        </span>
+                      )}
                     </div>
                   </div>
                 </div>
