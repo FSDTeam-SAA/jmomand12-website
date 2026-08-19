@@ -131,9 +131,9 @@ export function SiteFooter() {
             All rights reserved.
           </p>
           <div className="flex gap-6">
-            <span>Privacy</span>
-            <span>Terms</span>
-            <span>Cookies</span>
+            <Link href="/privacy-policy" className="hover:text-white transition-colors">Privacy</Link>
+            <Link href="/terms-and-conditions" className="hover:text-white transition-colors">Terms</Link>
+            {/* <span>Cookies</span> */}
           </div>
         </div>
       </div>
