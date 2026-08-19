@@ -418,7 +418,7 @@ function LostCard({ item }: { item: DashboardAuctionLostItem }) {
           <Link
             href={
               item.auctionId
-                ? `/auctions-details/${item.auctionId}`
+                ? `/#closed-auctions`
                 : "/category"
             }
           >

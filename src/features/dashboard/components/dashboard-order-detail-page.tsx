@@ -22,7 +22,7 @@ export function DashboardOrderDetailPage({ invoiceId }: { invoiceId: string }) {
     const orders = mapOrders(invoices.data, appointments.data);
     return orders.find((item) => item.invoice._id === invoiceId);
   }, [appointments.data, invoiceId, invoices.data]);
-
+                               
   if (invoices.isLoading || appointments.isLoading) {
     return (
       <DashboardShell
@@ -65,7 +65,7 @@ export function DashboardOrderDetailPage({ invoiceId }: { invoiceId: string }) {
       </DashboardShell>
     );
   }
-
+       
   const product = order.invoice.product;
   const steps = [
     {
@@ -113,7 +113,7 @@ export function DashboardOrderDetailPage({ invoiceId }: { invoiceId: string }) {
             Back to invoices
           </Link>
         </Button>
-      }
+      }                
     >
       <div className="space-y-6">
         <section className="rounded-2xl border border-[#dce6f5] bg-white p-6">
@@ -126,7 +126,7 @@ export function DashboardOrderDetailPage({ invoiceId }: { invoiceId: string }) {
                   alt={product.title}
                   className="h-full w-full object-cover"
                 />
-              ) : null}
+              ) : null}                                              
             </div>
 
             <div className="flex-1">
