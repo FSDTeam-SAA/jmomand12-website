@@ -284,7 +284,14 @@ export function SiteHeader() {
             <div className="flex items-center justify-between">
               {/* Logo Segment */}
               <Link href="/" className="transition-transform active:scale-98">
-                <SiteBrand />
+                <Image
+                  src="/logo.png"
+                  alt="Discount Deals"
+                  width={900}
+                  height={900}
+                  priority
+                  className="h-auto w-24 sm:w-28"
+                />
               </Link>
 
               {/* Mobile Right Controls Segment */}

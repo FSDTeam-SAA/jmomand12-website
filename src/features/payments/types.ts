@@ -37,6 +37,13 @@ export type SavedPaymentProfile = {
   hasDefaultPaymentMethod?: boolean;
 };
 
+export type DefaultPaymentMethodSummary = {
+  brand: string;
+  last4: string;
+  expMonth: number;
+  expYear: number;
+};
+
 export type CreateBidPayload = {
   auctionProductId: string;
   amount: number;
