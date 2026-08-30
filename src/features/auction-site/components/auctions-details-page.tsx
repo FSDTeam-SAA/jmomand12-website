@@ -20,6 +20,7 @@ import { Input } from "@/components/ui/input";
 import { dashboardKeys } from "@/features/dashboard/hooks/useDashboardData";
 import { getMyProfile } from "@/features/dashboard/api/dashboard.api";
 import { PaymentMethodDialog } from "@/features/payments/components/payment-method-dialog";
+import { BidPaymentConfirmationDialog } from "@/features/payments/components/bid-payment-confirmation-dialog";
 import { createBid } from "@/features/payments/api/payment.api";
 import { AuctionPrimaryButton, AuctionOutlineButton } from "./auction-buttons";
 import { resolveAuctionProductDetails } from "../api/auction.api";
@@ -93,6 +94,7 @@ export default function AuctionProductDetailsPage() {
   const [activeImageIndex, setActiveImageIndex] = useState(0);
   const [bidAmount, setBidAmount] = useState("");
   const [paymentDialogOpen, setPaymentDialogOpen] = useState(false);
+  const [bidConfirmationOpen, setBidConfirmationOpen] = useState(false);
   const [countdownTick, setCountdownTick] = useState(0);
   const [queuedBidAfterPayment, setQueuedBidAfterPayment] = useState<
     number | null
@@ -193,8 +195,8 @@ export default function AuctionProductDetailsPage() {
       return;
     }
 
-    setQueuedBidAfterPayment(null);
-    await submitBidAmount(parsedAmount);
+    setQueuedBidAfterPayment(parsedAmount);
+    setBidConfirmationOpen(true);
   }
 
   if (lotQuery.isLoading) {
@@ -224,11 +226,11 @@ export default function AuctionProductDetailsPage() {
   return (
     <>
       <main className="bg-[#f7f9fc]">
-        <section className="container py-10">
-          <div className="grid gap-4 lg:grid-cols-[minmax(0,2fr)_380px]">
-            <div className="space-y-4">
-              <div className="auction-card rounded-[8px] bg-white p-6">
-                <div className="relative h-[520px] overflow-hidden rounded-[4px] bg-white">
+        <section className="container mx-auto px-3 py-4 sm:px-4 sm:py-6 lg:py-10">
+          <div className="grid gap-3 sm:gap-4 lg:grid-cols-[minmax(0,2fr)_380px]">
+            <div className="contents lg:block lg:space-y-4">
+              <div className="order-1 auction-card rounded-[8px] bg-white p-3 sm:p-6 lg:order-none">
+                <div className="relative h-[280px] overflow-hidden rounded-[4px] bg-white sm:h-[420px] lg:h-[520px]">
                   <Image
                     src={currentDisplayImage}
                     alt={product.title}
@@ -236,7 +238,7 @@ export default function AuctionProductDetailsPage() {
                     priority
                     className="object-contain"
                   />
-                  <div className="absolute bottom-4 right-4 rounded-[8px] bg-[#eef4ff] px-4 py-2 text-[12px] text-[#111827]">
+                  <div className="absolute bottom-2 right-2 rounded-[8px] bg-[#eef4ff] px-3 py-1.5 text-[11px] text-[#111827] sm:bottom-4 sm:right-4 sm:px-4 sm:py-2 sm:text-[12px]">
                     {activeImageIndex + 1}/{galleryImages.length}
                   </div>
                   {galleryImages.length > 1 ? (
@@ -248,7 +250,7 @@ export default function AuctionProductDetailsPage() {
                             prev === 0 ? galleryImages.length - 1 : prev - 1,
                           )
                         }
-                        className="absolute left-4 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-[#111827] shadow-sm"
+                        className="absolute left-2 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-[#111827] shadow-sm sm:left-4 sm:h-10 sm:w-10"
                       >
                         <ChevronLeft className="h-5 w-5" />
                       </button>
@@ -259,7 +261,7 @@ export default function AuctionProductDetailsPage() {
                             prev === galleryImages.length - 1 ? 0 : prev + 1,
                           )
                         }
-                        className="absolute right-4 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-[#111827] shadow-sm"
+                        className="absolute right-2 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-[#111827] shadow-sm sm:right-4 sm:h-10 sm:w-10"
                       >
                         <ChevronRight className="h-5 w-5" />
                       </button>
@@ -267,13 +269,13 @@ export default function AuctionProductDetailsPage() {
                   ) : null}
                 </div>
 
-                <div className="mt-4 grid grid-cols-6 gap-3">
+                <div className="mt-3 grid grid-cols-4 gap-2 sm:mt-4 sm:grid-cols-6 sm:gap-3">
                   {galleryImages.map((image, index) => (
                     <button
                       key={`${image.public_id}-${index}`}
                       type="button"
                       onClick={() => setActiveImageIndex(index)}
-                      className={`relative h-[56px] overflow-hidden rounded-[8px] border p-2 transition-all ${
+                      className={`relative h-14 overflow-hidden rounded-[8px] border p-1.5 transition-all sm:p-2 ${
                         index === activeImageIndex
                           ? "border-2 border-[#003da5]"
                           : "border-[#dce6f5] opacity-70 hover:opacity-100"
@@ -290,8 +292,8 @@ export default function AuctionProductDetailsPage() {
                 </div>
               </div>
 
-              <div className="auction-card rounded-[8px] bg-white p-5">
-                <div className="flex flex-wrap items-center gap-3">
+              <div className="order-3 auction-card rounded-[8px] bg-white p-4 sm:p-5 lg:order-none">
+                <div className="flex flex-wrap items-center gap-2 sm:gap-3">
                   <div className="inline-flex rounded-[4px] bg-[#eef4ff] px-3 py-1 text-[11px] font-black uppercase text-[#003da5]">
                     Lot #{product.inventoryId || "UNKNOWN"}
                   </div>
@@ -305,11 +307,11 @@ export default function AuctionProductDetailsPage() {
                   ) : null}
                 </div>
 
-                <h1 className="mt-4 max-w-[780px] text-[28px] font-bold leading-[1.2] text-[#1e293b] lg:text-[36px]">
+                <h1 className="mt-4 max-w-[780px] break-words text-[23px] font-bold leading-[1.2] text-[#1e293b] sm:text-[28px] lg:text-[36px]">
                   {product.title}
                 </h1>
 
-                <div className="mt-5 grid gap-4 border-b border-[#dce6f5] pb-5 md:grid-cols-4">
+                <div className="mt-5 grid grid-cols-2 gap-4 border-b border-[#dce6f5] pb-5 md:grid-cols-4">
                   <div className="text-center md:border-r md:border-[#dce6f5]">
                     <div className="text-[11px] text-[#6b7280]">
                       Current bid
@@ -363,22 +365,22 @@ export default function AuctionProductDetailsPage() {
                         : "Schedule unavailable"}
                     </div>
                   </div>
-                  <div className="rounded-[8px] bg-[#eef4ff] px-4 py-4">
+                  {/* <div className="rounded-[8px] bg-[#eef4ff] px-4 py-4">
                     <div className="text-[12px] text-[#6b7280]">
                       Bid increment
                     </div>
                     <div className="mt-1 text-[14px] font-bold text-[#003da5]">
                       {formatCurrency(lot.bidIncrement)}
                     </div>
-                  </div>
+                  </div> */}
                 </div>
               </div>
 
-              <div className="auction-card overflow-hidden rounded-[8px] bg-white">
-                <div className="border-b border-[#dce6f5] px-5 py-3 text-[12px] font-bold uppercase tracking-wider text-[#003da5]">
+              <div className="order-4 auction-card overflow-hidden rounded-[8px] bg-white lg:order-none">
+                <div className="border-b border-[#dce6f5] px-4 py-3 text-[12px] font-bold uppercase tracking-wider text-[#003da5] sm:px-5">
                   Specifications overview
                 </div>
-                <div className="px-5 py-6">
+                <div className="px-4 py-5 sm:px-5 sm:py-6">
                   <h2 className="text-[22px] font-bold text-[#111827]">
                     Lot details
                   </h2>
@@ -392,36 +394,36 @@ export default function AuctionProductDetailsPage() {
 
                   <div className="mt-6 overflow-hidden rounded-[4px] border border-[#e5edf8]">
                     <div className="grid grid-cols-[1fr_1fr] border-b border-[#e5edf8] text-[12px]">
-                      <div className="bg-[#f8fbff] px-4 py-3 text-[#6b7280]">
+                      <div className="bg-[#f8fbff] px-3 py-3 text-[#6b7280] sm:px-4">
                         Manufacturer
                       </div>
-                      <div className="px-4 py-3 text-[#6b7280]">
+                      <div className="break-words px-3 py-3 text-[#6b7280] sm:px-4">
                         {product.manufacturer || "Not specified"}
                       </div>
                     </div>
                     <div className="grid grid-cols-[1fr_1fr] border-b border-[#e5edf8] text-[12px]">
-                      <div className="bg-[#f8fbff] px-4 py-3 text-[#6b7280]">
+                      <div className="bg-[#f8fbff] px-3 py-3 text-[#6b7280] sm:px-4">
                         Colors
                       </div>
-                      <div className="px-4 py-3 text-[#6b7280]">
+                      <div className="break-words px-3 py-3 text-[#6b7280] sm:px-4">
                         {product.color?.length
                           ? product.color.join(", ")
                           : "Not specified"}
                       </div>
                     </div>
                     <div className="grid grid-cols-[1fr_1fr] border-b border-[#e5edf8] text-[12px]">
-                      <div className="bg-[#f8fbff] px-4 py-3 text-[#6b7280]">
+                      <div className="bg-[#f8fbff] px-3 py-3 text-[#6b7280] sm:px-4">
                         Inventory status
                       </div>
-                      <div className="px-4 py-3 capitalize text-[#6b7280]">
+                      <div className="break-words px-3 py-3 capitalize text-[#6b7280] sm:px-4">
                         {formatCondition(product.inventoryStatus)}
                       </div>
                     </div>
                     <div className="grid grid-cols-[1fr_1fr] text-[12px]">
-                      <div className="bg-[#f8fbff] px-4 py-3 text-[#6b7280]">
+                      <div className="bg-[#f8fbff] px-3 py-3 text-[#6b7280] sm:px-4">
                         Reviews
                       </div>
-                      <div className="px-4 py-3 text-[#6b7280]">
+                      <div className="break-words px-3 py-3 text-[#6b7280] sm:px-4">
                         {product.totalReview} reviews •{" "}
                         {product.averageReview.toFixed(1)} avg rating
                       </div>
@@ -431,7 +433,7 @@ export default function AuctionProductDetailsPage() {
               </div>
             </div>
 
-            <div className="space-y-4">
+            <div className="order-2 space-y-4 lg:order-none">
               <div className="auction-card overflow-hidden rounded-[8px] bg-white">
                 <div className="border-b border-[#dce6f5] bg-[#eef4ff] px-4 py-3">
                   <span className="text-[12px] font-bold text-[#0b57d0]">
@@ -439,8 +441,8 @@ export default function AuctionProductDetailsPage() {
                   </span>
                 </div>
                 <div className="space-y-4 p-4">
-                  <div className="flex items-start justify-between gap-4">
-                    <div>
+                  <div className="flex flex-col gap-3 min-[420px]:flex-row min-[420px]:items-start min-[420px]:justify-between">
+                    <div className="min-w-0">
                       <div className="text-[12px] mb-3 text-[#6b7280]">
                         Current bid
                       </div>
@@ -449,7 +451,7 @@ export default function AuctionProductDetailsPage() {
                           {formatCurrency(currentBid)}
                         </div>
                       </div>
-                      <div className="mt-2 flex items-center gap-2 text-[12px] text-[#6b7280]">
+                      <div className="mt-2 flex items-start gap-2 break-words text-[12px] text-[#6b7280]">
                         <Timer className="h-4 w-4 text-[#0b57d0]" />
                         Ends{" "}
                         {lot.auction?.endsAt
@@ -457,7 +459,7 @@ export default function AuctionProductDetailsPage() {
                           : "soon"}
                       </div>
                     </div>
-                    <div className="rounded-2xl border border-[#dce6f5] bg-[#f8fbff] px-3 py-2 text-right">
+                    <div className="self-start rounded-2xl border border-[#dce6f5] bg-[#f8fbff] px-3 py-2 text-right">
                       <div className="text-[11px] uppercase text-[#6b7280]">
                         Min next bid
                       </div>
@@ -471,7 +473,7 @@ export default function AuctionProductDetailsPage() {
                     <div className="text-center text-[11px] font-bold uppercase tracking-[0.12em] text-[#6b7280]">
                       Time remaining
                     </div>
-                    <div className="mt-3 grid grid-cols-4 gap-2">
+                    <div className="mt-3 grid grid-cols-4 gap-1.5 sm:gap-2">
                       {[
                         [countdown.days, "Days"],
                         [countdown.hours, "Hours"],
@@ -480,9 +482,9 @@ export default function AuctionProductDetailsPage() {
                       ].map(([value, label]) => (
                         <div
                           key={label}
-                          className="rounded-[6px] bg-white px-3 py-3 text-center"
+                          className="rounded-[6px] bg-white px-1 py-2 text-center sm:px-3 sm:py-3"
                         >
-                          <div className="text-[22px] font-bold text-[#111827]">
+                          <div className="text-[18px] font-bold text-[#111827] sm:text-[22px]">
                             {value}
                           </div>
                           <div className="mt-1 text-[10px] font-bold uppercase text-[#6b7280]">
@@ -518,7 +520,7 @@ export default function AuctionProductDetailsPage() {
                     Quick Bid: {formatCurrency(quickBidAmount)}
                   </AuctionPrimaryButton>
 
-                  <div className="flex gap-2">
+                  <div className="flex flex-col gap-2 min-[420px]:flex-row">
                     <Input
                       type="number"
                       min={minimumNextBid || 0}
@@ -530,7 +532,7 @@ export default function AuctionProductDetailsPage() {
                       disabled={!canBid || bidMutation.isPending}
                     />
                     <AuctionOutlineButton
-                      className="h-11 px-4 text-[12px]"
+                      className="h-11 w-full px-4 text-[12px] min-[420px]:w-auto"
                       disabled={!canBid || bidMutation.isPending}
                       onClick={() => void handleBidSubmit()}
                     >
@@ -544,7 +546,7 @@ export default function AuctionProductDetailsPage() {
                     </p>
                     <p className="mt-2">
                       Bids must be at least {formatCurrency(minimumNextBid)}.
-                      Current increment is {formatCurrency(lot.bidIncrement)}.
+                      {/* Current increment is {formatCurrency(lot.bidIncrement)}. */}
                     </p>
                     {!canBid ? (
                       <p className="mt-2 text-[#b45309]">
@@ -554,7 +556,7 @@ export default function AuctionProductDetailsPage() {
                     ) : null}
                   </div>
 
-                  <div className="flex items-center justify-center gap-8 pt-2 text-center text-[10px] font-bold uppercase text-[#111827]">
+                  <div className="flex items-center justify-between gap-3 pt-2 text-center text-[10px] font-bold uppercase text-[#111827] sm:justify-center sm:gap-8">
                     <div>
                       <Lock className="mx-auto mb-1 h-4 w-4 text-[#111827]" />
                       Secure
@@ -718,9 +720,25 @@ export default function AuctionProductDetailsPage() {
             Number.isFinite(queuedBidAfterPayment)
           ) {
             const nextBid = queuedBidAfterPayment;
-            setQueuedBidAfterPayment(null);
-            await submitBidAmount(nextBid);
+            setQueuedBidAfterPayment(nextBid);
+            setBidConfirmationOpen(true);
           }
+        }}
+      />
+
+      <BidPaymentConfirmationDialog
+        open={bidConfirmationOpen}
+        amount={queuedBidAfterPayment}
+        isConfirming={bidMutation.isPending}
+        onOpenChange={(nextOpen) => {
+          setBidConfirmationOpen(nextOpen);
+          if (!nextOpen && !bidMutation.isPending) setQueuedBidAfterPayment(null);
+        }}
+        onConfirm={async () => {
+          if (queuedBidAfterPayment == null) return;
+          await submitBidAmount(queuedBidAfterPayment);
+          setBidConfirmationOpen(false);
+          setQueuedBidAfterPayment(null);
         }}
       />
     </>

@@ -113,33 +113,44 @@ function PaymentForm({
 }) {
   const stripe = useStripe();
   const elements = useElements();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const isBusy = busy || isSubmitting;
 
   const handleSubmit = async () => {
-    if (!stripe || !elements) return;
+    if (!stripe || !elements) {
+      onError("The secure card form is still loading. Please wait a moment and try again.");
+      return;
+    }
+
+    if (isBusy) return;
+
     onError("");
-
-    const submitResult = await elements.submit();
-    if (submitResult.error) {
-      onError(submitResult.error.message || "Please check your card details and try again.");
-      return;
-    }
-
-    const confirmation = await stripe.confirmSetup({
-      elements,
-      clientSecret: setupState.clientSecret,
-      redirect: "if_required",
-    });
-
-    if (confirmation.error) {
-      onError(confirmation.error.message || "Card confirmation failed.");
-      return;
-    }
+    setIsSubmitting(true);
 
     try {
+      const submitResult = await elements.submit();
+      if (submitResult.error) {
+        onError(submitResult.error.message || "Please check your card details and try again.");
+        return;
+      }
+
+      const confirmation = await stripe.confirmSetup({
+        elements,
+        clientSecret: setupState.clientSecret,
+        redirect: "if_required",
+      });
+
+      if (confirmation.error) {
+        onError(confirmation.error.message || "Card confirmation failed.");
+        return;
+      }
+
       const confirmedId = confirmation.setupIntent?.id || setupState.setupIntentId;
       await onConfirm(confirmedId);
     } catch (error) {
       onError(getErrorMessage(error, "We couldn't save that payment method."));
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -156,7 +167,9 @@ function PaymentForm({
               layout: "tabs",
               fields: {
                 billingDetails: {
-                  address: "never",
+                  // Stripe collects only the billing fields required for the selected card.
+                  // Do not use "never" unless we supply the omitted address at confirmSetup.
+                  address: "if_required",
                 },
               },
             }}
@@ -177,10 +190,10 @@ function PaymentForm({
         onClick={() => {
           void handleSubmit();
         }}
-        disabled={!stripe || !elements || busy}
+        disabled={isBusy}
       >
-        {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />}
-        {busy ? "Saving card..." : "Save payment method"}
+        {isBusy ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />}
+        {isBusy ? "Saving card..." : "Save payment method"}
       </Button>
     </div>
   );
@@ -350,9 +363,9 @@ export function PaymentMethodDialog({
 
   return (
     <Dialog open={open} onOpenChange={handleDialogOpenChange}>
-      <DialogContent className="max-w-xl rounded-3xl border-[#dce6f5] p-0 sm:max-w-xl">
-        <div className="overflow-hidden rounded-3xl">
-          <div className="bg-[#f8fbff] px-6 py-5">
+      <DialogContent className="max-h-[calc(100dvh-1rem)] w-[calc(100%-1rem)] max-w-xl overflow-hidden rounded-3xl border-[#dce6f5] p-0 sm:max-h-[calc(100dvh-2rem)] sm:w-full">
+        <div className="flex max-h-[calc(100dvh-1rem)] flex-col overflow-hidden rounded-3xl sm:max-h-[calc(100dvh-2rem)]">
+          <div className="shrink-0 bg-[#f8fbff] px-4 py-4 sm:px-6 sm:py-5">
             <DialogHeader>
               <DialogTitle className="text-2xl text-[#111827]">{title}</DialogTitle>
               <DialogDescription className="text-sm text-[#64748b]">
@@ -361,7 +374,7 @@ export function PaymentMethodDialog({
             </DialogHeader>
           </div>
 
-          <div className="space-y-5 px-6 py-6">
+          <div className="min-h-0 space-y-5 overflow-y-auto overscroll-contain px-4 py-5 sm:px-6 sm:py-6">
             <div className="grid gap-3 rounded-2xl border border-[#dce6f5] bg-white p-4 text-sm text-[#475569]">
               <div className="flex items-center gap-2 font-semibold text-[#111827]">
                 <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-[#eef4ff] text-xs text-[#003da5]">

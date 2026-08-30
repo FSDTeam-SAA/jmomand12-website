@@ -22,6 +22,7 @@ import { getMyProfile } from "@/features/dashboard/api/dashboard.api";
 import { dashboardKeys } from "@/features/dashboard/hooks/useDashboardData";
 import { createBid } from "@/features/payments/api/payment.api";
 import { PaymentMethodDialog } from "@/features/payments/components/payment-method-dialog";
+import { BidPaymentConfirmationDialog } from "@/features/payments/components/bid-payment-confirmation-dialog";
 import { AuctionCardProps } from "../../types/AuctionType";
 
 // Extended inline interface safely handling the extra properties from the image design
@@ -79,6 +80,7 @@ export default function AuctionCard({
 
   const [authModalOpen, setAuthModalOpen] = useState(false);
   const [paymentDialogOpen, setPaymentDialogOpen] = useState(false);
+  const [bidConfirmationOpen, setBidConfirmationOpen] = useState(false);
   const [smartBidModalOpen, setSmartBidModalOpen] = useState(false);
   const [customBidAmount, setCustomBidAmount] = useState("");
   const [queuedBid, setQueuedBid] = useState<number | null>(null);
@@ -179,8 +181,8 @@ export default function AuctionCard({
       return;
     }
 
-    setQueuedBid(null);
-    await submitBidAmount(amount);
+    setQueuedBid(amount);
+    setBidConfirmationOpen(true);
   }
 
   const handleMaxBidClick = async () => {
@@ -354,9 +356,25 @@ export default function AuctionCard({
           }
           if (queuedBid != null) {
             const bidVal = queuedBid;
-            setQueuedBid(null);
-            await submitBidAmount(bidVal);
+            setQueuedBid(bidVal);
+            setBidConfirmationOpen(true);
           }
+        }}
+      />
+
+      <BidPaymentConfirmationDialog
+        open={bidConfirmationOpen}
+        amount={queuedBid}
+        isConfirming={bidMutation.isPending}
+        onOpenChange={(nextOpen) => {
+          setBidConfirmationOpen(nextOpen);
+          if (!nextOpen && !bidMutation.isPending) setQueuedBid(null);
+        }}
+        onConfirm={async () => {
+          if (queuedBid == null) return;
+          await submitBidAmount(queuedBid);
+          setBidConfirmationOpen(false);
+          setQueuedBid(null);
         }}
       />
 

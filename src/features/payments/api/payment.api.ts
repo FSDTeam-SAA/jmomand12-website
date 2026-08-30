@@ -3,6 +3,7 @@ import type { ApiResponse } from "@/features/dashboard/types";
 import type {
   CreateBidPayload,
   CreatedBid,
+  DefaultPaymentMethodSummary,
   SavedPaymentProfile,
   SetupIntentResponse,
   SetupIntentStatus,
@@ -22,6 +23,13 @@ export async function getTestHelperStatus() {
 export async function getSetupIntentStatus(setupIntentId: string) {
   const response = await api.get<ApiResponse<SetupIntentStatus>>(
     `/payments/setup-intents/${setupIntentId}`,
+  );
+  return response.data.data;
+}
+
+export async function getDefaultPaymentMethodSummary() {
+  const response = await api.get<ApiResponse<DefaultPaymentMethodSummary>>(
+    "/payments/default-payment-method",
   );
   return response.data.data;
 }
