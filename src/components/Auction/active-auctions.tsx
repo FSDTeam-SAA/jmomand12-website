@@ -34,7 +34,7 @@ export default function ActiveAuctions() {
           </div>
 
           <Link
-            href="/category"
+            href="/category?status=live_auction"
             className="inline-flex items-center justify-center rounded-xl bg-orange-500 px-6 py-3 text-sm font-semibold text-white transition-all duration-200 hover:bg-orange-600 shadow-sm hover:shadow active:scale-[0.98] sm:px-8 sm:py-3.5 sm:text-base"
           >
             View All Items

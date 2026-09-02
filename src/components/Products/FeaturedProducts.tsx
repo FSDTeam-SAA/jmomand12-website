@@ -59,7 +59,7 @@ export default function FeaturedProducts() {
           </div>
 
           <Link
-            href="/category"
+            href="/category?status=buy_now"
             className="inline-flex w-fit items-center rounded-lg border border-orange-500 px-6 py-2.5 text-sm font-semibold text-orange-500 transition hover:bg-orange-500 hover:text-white"
           >
             View All

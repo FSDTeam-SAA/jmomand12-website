@@ -167,6 +167,35 @@ export default function AuctionListingPage() {
     return () => clearTimeout(handler);
   }, [searchInput]);
 
+  // Sync state variables when searchParams change (e.g., direct navigation via links with query params)
+  useEffect(() => {
+    const statusParam = searchParams.get("status");
+    const categoryParam = searchParams.get("category");
+    const searchParam = searchParams.get("search") || searchParams.get("searchTerm");
+    const priceRangeParam = searchParams.get("priceRange");
+    const conditionParam = searchParams.get("condition");
+    const auctionIdParam = searchParams.get("auctionId");
+    const minBidParam = searchParams.get("minBid");
+    const maxBidParam = searchParams.get("maxBid");
+    const pageParam = searchParams.get("page");
+
+    setSelectedStatus(getListParam(statusParam, statuses.map((item) => item.id)));
+    setSelectedCategory(categoryParam || "All Products");
+    if (searchParam !== null && searchParam !== undefined) {
+      setSearchInput(searchParam);
+      setSearchTerm(searchParam);
+    } else {
+      setSearchInput("");
+      setSearchTerm("");
+    }
+    setSelectedPriceRange(priceRangeParam ? priceRangeParamMap[priceRangeParam] || null : null);
+    setSelectedCondition(getListParam(conditionParam, conditions.map((item) => item.id)));
+    setSelectedAuctionId(auctionIdParam || "");
+    setMinBid(minBidParam || "");
+    setMaxBid(maxBidParam || "");
+    setCurrentPage(getPageParam(pageParam));
+  }, [searchParams]);
+
   // --- Fetch Categories ---
   const { data: categoriesData, isLoading: categoriesLoading } = useQuery<CategoryResponse>({
     queryKey: ["categories"],

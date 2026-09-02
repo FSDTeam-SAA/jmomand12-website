@@ -117,14 +117,14 @@ export default function Hero() {
               {/* Action Buttons: Left-aligned for mobile layout */}
               <div className="mt-5 sm:mt-6 flex flex-row flex-nowrap items-center justify-start gap-3 sm:gap-4 w-full">
                 <Link
-                  href="/category"
+                  href="/category?status=live_auction"
                   className="whitespace-nowrap px-5 sm:px-6 py-2.5 rounded-full bg-gradient-to-r from-orange-500 to-orange-600 text-xs sm:text-sm font-bold text-white transition-all duration-200 hover:shadow-lg hover:shadow-orange-500/20 active:scale-[0.98]"
                 >
                   Live Auctions
                 </Link>
 
                 <Link
-                  href="/category"
+                  href="/category?status=buy_now"
                   className="whitespace-nowrap px-5 sm:px-6 py-2.5 rounded-full border-2 border-orange-500/80 text-xs sm:text-sm font-bold text-orange-400 bg-transparent transition-all duration-200 hover:bg-orange-500 hover:text-white active:scale-[0.98]"
                 >
                   Buy Now
