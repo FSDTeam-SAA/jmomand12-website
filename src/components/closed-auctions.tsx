@@ -106,13 +106,24 @@ export default function ClosedAuctions() {
             {closedAuctionsList.map((item) => {
               // Primary product and fallback management
               const primaryProduct = item.products?.[0];
+              const primaryAuctionProduct = item.auctionProducts?.[0];
+              const productStatus =
+                primaryProduct?.auctionProductStatus ||
+                primaryAuctionProduct?.status ||
+                item.status;
+              const isSold = productStatus === "sold";
+              const isUnsold = productStatus === "unsold";
+
               const displayImage =
                 primaryProduct?.images?.[0]?.url || "/closed.png";
               const displayTitle =
                 item.title || primaryProduct?.title || "Untitled Auction";
-              const displayBid = primaryProduct?.reservePrice
-                ? `$${primaryProduct.reservePrice.toFixed(2)}`
-                : "$0.00";
+
+              const winningAmount =
+                primaryProduct?.soldPrice ??
+                primaryAuctionProduct?.soldPrice ??
+                (isSold ? (primaryProduct?.currentBid ?? primaryAuctionProduct?.highestBid?.amount) : null);
+
               const displayClosedDate = formatClosedDate(item.endsAt);
 
               return (
@@ -129,10 +140,15 @@ export default function ClosedAuctions() {
 
                     {/* Overlay badge layer */}
                     <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
-                      <div className="-rotate-12 rounded-lg bg-red-600 px-5 py-4">
-                        <span className="text-base font-black text-white">
-                          CLOSED
+                      <div className={`-rotate-12 rounded-lg ${isSold ? "bg-emerald-600" : "bg-red-600"} px-5 py-3 text-center`}>
+                        <span className="text-base font-black text-white block">
+                          {isSold ? "SOLD" : "CLOSED"}
                         </span>
+                        {isUnsold ? (
+                          <span className="text-[10px] font-bold text-red-100 uppercase tracking-wider block mt-0.5">
+                            Reserve Not Met
+                          </span>
+                        ) : null}
                       </div>
                     </div>
                   </div>
@@ -148,9 +164,15 @@ export default function ClosedAuctions() {
 
                     <div className="flex items-end justify-between">
                       <div>
-                        <p className="text-base text-gray-500">Winning Bid</p>
-                        <h4 className="mt-2 text-lg font-bold text-gray-900">
-                          {displayBid}
+                        <p className="text-base text-gray-500">
+                          {isSold ? "Winning Bid" : "Result"}
+                        </p>
+                        <h4 className={`mt-2 text-lg font-bold ${isSold ? "text-gray-900" : "text-red-600"}`}>
+                          {isSold && typeof winningAmount === "number" && winningAmount > 0
+                            ? `$${winningAmount.toFixed(2)}`
+                            : isUnsold
+                              ? "Reserve Not Met"
+                              : "Not Sold"}
                         </h4>
                       </div>
 

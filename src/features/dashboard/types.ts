@@ -62,6 +62,13 @@ export type Invoice = {
   invoiceNumber: string;
   inventoryId: string;
   amount: number;
+  subtotal?: number;
+  buyerPremiumRate?: number;
+  buyerPremiumAmount?: number;
+  salesTaxAmount?: number;
+  creditCardFeeRate?: number;
+  creditCardFeeAmount?: number;
+  totalAmount?: number;
   status: "payment_pending" | "paid" | "payment_failed" | "void";
   pickupCode: string;
   pickupQrDataUrl?: string;

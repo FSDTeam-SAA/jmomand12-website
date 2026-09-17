@@ -495,7 +495,12 @@ export default function AuctionProductDetailsPage() {
                     </div>
                   </div>
 
-                  {!hasPaymentMethod ? (
+                  {lot.status === "unsold" ? (
+                    <div className="rounded-[8px] border border-amber-200 bg-amber-50 px-4 py-3 text-[12px] text-amber-800">
+                      <strong className="block font-semibold">Reserve Price Not Met</strong>
+                      This item was not sold because the reserve price was not reached. No payment was charged.
+                    </div>
+                  ) : !hasPaymentMethod ? (
                     <div className="rounded-[8px] border border-[#f7d288] bg-[#fff9e9] px-4 py-3 text-[12px] text-[#b66500]">
                       Save a payment method before bidding so we can securely
                       charge the winning card when the auction closes.
@@ -550,8 +555,9 @@ export default function AuctionProductDetailsPage() {
                     </p>
                     {!canBid ? (
                       <p className="mt-2 text-[#b45309]">
-                        This lot is currently {statusLabel}. Bidding is only
-                        available while the lot is active.
+                        {lot.status === "unsold"
+                          ? "This lot ended without a sale because the reserve price was not reached."
+                          : `This lot is currently ${statusLabel}. Bidding is only available while the lot is active.`}
                       </p>
                     ) : null}
                   </div>
@@ -668,13 +674,17 @@ export default function AuctionProductDetailsPage() {
                     <span className="font-semibold text-[#111827]">
                       {lot.winner
                         ? `${lot.winner.firstName} ${lot.winner.lastName}`
-                        : "Still open"}
+                        : lot.status === "unsold"
+                          ? "Reserve Not Met (No Winner)"
+                          : "Still open"}
                     </span>
                   </div>
                   <div className="flex items-center justify-between rounded-xl border border-[#dce6f5] px-3 py-3">
                     <span>Payment status</span>
                     <span className="font-semibold capitalize text-[#111827]">
-                      {formatCondition(lot.paymentStatus)}
+                      {lot.status === "unsold"
+                        ? "Not Applicable"
+                        : formatCondition(lot.paymentStatus)}
                     </span>
                   </div>
                   {!hasPaymentMethod ? (

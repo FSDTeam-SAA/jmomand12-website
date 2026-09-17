@@ -14,6 +14,11 @@ interface AuctionProduct {
   day: string;
   reservePrice: number;
   inventoryStatus: string;
+  auctionProductId?: string;
+  auctionProductStatus?: string;
+  currentBid?: number;
+  soldPrice?: number;
+  isReserveMet?: boolean;
   images: AuctionProductImage[];
   totalReview: number;
   type: string;
@@ -37,6 +42,7 @@ interface ClosedAuctionItem {
   _id: string;
   auctionId: string;
   products: AuctionProduct[];
+  auctionProducts?: any[];
   title: string;
   description: string;
   startsAt: string;

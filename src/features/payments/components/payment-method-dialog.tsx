@@ -72,6 +72,15 @@ function isNetworkError(message: string) {
 }
 
 function formatSetupFailure(message: string) {
+  const normalized = message.toLowerCase();
+  if (normalized.includes("no such customer")) {
+    return {
+      title: "Stripe profile synchronized",
+      body: "Your Stripe account profile was reset to match the current environment.",
+      hint: "Click 'Retry secure setup' below to initialize a fresh card form.",
+    };
+  }
+
   if (isStripeConfigurationError(message)) {
     return {
       title: "Card setup is unavailable in this environment",
@@ -214,36 +223,14 @@ export function PaymentMethodDialog({
   const [canUseDevHelper, setCanUseDevHelper] = useState(false);
   const hasInitializedForOpenRef = useRef(false);
 
-  useEffect(() => {
-    if (!open) {
-      return;
-    }
-
-    let isActive = true;
-
-    void getTestHelperStatus()
-      .then((status) => {
-        if (isActive) {
-          setCanUseDevHelper(status.enabled === true);
-        }
-      })
-      .catch(() => {
-        if (isActive) {
-          setCanUseDevHelper(false);
-        }
-      });
-
-    return () => {
-      isActive = false;
-    };
-  }, [open]);
-
   const setupIntentMutation = useMutation({
     mutationFn: createSetupIntent,
     onSuccess: (result) => {
       setCanUseDevHelper((current) => current || result.testHelperEnabled === true);
 
-      if (!result.clientSecret || !result.publishableKey) {
+      const resolvedKey = result.publishableKey || process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY;
+
+      if (!result.clientSecret || !resolvedKey) {
         setInlineError("Stripe is not fully configured yet. Please try again later.");
         return;
       }
@@ -251,9 +238,9 @@ export function PaymentMethodDialog({
       setSetupState({
         clientSecret: result.clientSecret,
         setupIntentId: result.setupIntentId,
-        publishableKey: result.publishableKey,
+        publishableKey: resolvedKey,
       });
-      setStripePromise(loadStripe(result.publishableKey));
+      setStripePromise(loadStripe(resolvedKey));
     },
     onError: (error) => {
       setInlineError(getErrorMessage(error, "We couldn't prepare secure card setup."));
@@ -274,18 +261,6 @@ export function PaymentMethodDialog({
     },
   });
 
-  const elementsOptions: StripeElementsOptions | undefined = setupState?.clientSecret
-    ? {
-        clientSecret: setupState.clientSecret,
-        appearance: {
-          theme: "stripe",
-        },
-        loader: "auto",
-      }
-    : undefined;
-
-  const isBusy =
-    setupIntentMutation.isPending || saveDefaultMutation.isPending || testCardMutation.isPending;
   function prepareSetupIntent() {
     if (setupIntentMutation.isPending || hasInitializedForOpenRef.current) return;
     hasInitializedForOpenRef.current = true;
@@ -299,6 +274,48 @@ export function PaymentMethodDialog({
       },
     });
   }
+
+  useEffect(() => {
+    if (!open) {
+      return;
+    }
+
+    let isActive = true;
+
+    void getTestHelperStatus()
+      .then((status) => {
+        if (isActive) {
+          setCanUseDevHelper(status.enabled === true);
+        }
+      })
+      .catch(() => {
+        if (isActive) {
+          setCanUseDevHelper(false);
+        }
+      });
+
+    // Auto-prepare card setup when modal opens
+    if (!hasInitializedForOpenRef.current && !setupState && !setupIntentMutation.isPending) {
+      prepareSetupIntent();
+    }
+
+    return () => {
+      isActive = false;
+    };
+  }, [open]);
+
+  const elementsOptions: StripeElementsOptions | undefined = setupState?.clientSecret
+    ? {
+        clientSecret: setupState.clientSecret,
+        appearance: {
+          theme: "stripe",
+        },
+        loader: "auto",
+      }
+    : undefined;
+
+  const isBusy =
+    setupIntentMutation.isPending || saveDefaultMutation.isPending || testCardMutation.isPending;
 
   async function handleConfirm(setupIntentId: string) {
     setInlineError("");
