@@ -89,7 +89,7 @@ export default function AuctionProductDetailsPage() {
   const params = useParams();
   const router = useRouter();
   const queryClient = useQueryClient();
-  const { status } = useSession();
+  const { data: session, status } = useSession();
   const productId = String(params?.id || params?.productId || "");
   const [activeImageIndex, setActiveImageIndex] = useState(0);
   const [bidAmount, setBidAmount] = useState("");
@@ -133,6 +133,11 @@ export default function AuctionProductDetailsPage() {
 
   const lot = lotQuery.data;
   const product = lot?.product;
+  const isCurrentUserHighestBidder = Boolean(
+    status === "authenticated" &&
+      session?.user?.id &&
+      session.user.id === lot?.highestBid?.bidder?._id,
+  );
   const galleryImages = product?.images?.length
     ? product.images
     : [{ public_id: "placeholder", url: "/images/login.jpg" }];
@@ -497,8 +502,8 @@ export default function AuctionProductDetailsPage() {
 
                   {lot.status === "unsold" ? (
                     <div className="rounded-[8px] border border-amber-200 bg-amber-50 px-4 py-3 text-[12px] text-amber-800">
-                      <strong className="block font-semibold">Reserve Price Not Met</strong>
-                      This item was not sold because the reserve price was not reached. No payment was charged.
+                      <strong className="block font-semibold">Not Sold</strong>
+                      This auction ended without a sale. No payment was charged.
                     </div>
                   ) : !hasPaymentMethod ? (
                     <div className="rounded-[8px] border border-[#f7d288] bg-[#fff9e9] px-4 py-3 text-[12px] text-[#b66500]">
@@ -556,7 +561,7 @@ export default function AuctionProductDetailsPage() {
                     {!canBid ? (
                       <p className="mt-2 text-[#b45309]">
                         {lot.status === "unsold"
-                          ? "This lot ended without a sale because the reserve price was not reached."
+                          ? "This lot ended without a sale."
                           : `This lot is currently ${statusLabel}. Bidding is only available while the lot is active.`}
                       </p>
                     ) : null}
@@ -599,15 +604,20 @@ export default function AuctionProductDetailsPage() {
                         <div className="flex items-center justify-between border-b pb-2">
                           <span className="text-gray-500">Name</span>
                           <span className="font-medium">
-                            {lot.highestBid.bidder.firstName.slice(0,3)}{"****"}
-                            {/* {lot.highestBid.bidder.lastName} */}
+                            {isCurrentUserHighestBidder
+                              ? [lot.highestBid.bidder.firstName, lot.highestBid.bidder.lastName]
+                                  .filter(Boolean)
+                                  .join(" ")
+                              : `${lot.highestBid.bidder.firstName.slice(0, 3)}****`}
                           </span>
                         </div>
 
                         <div className="flex items-center justify-between border-b pb-2">
                           <span className="text-gray-500">Email</span>
                           <span className="font-medium">
-                            {lot?.highestBid?.bidder?.email?.slice(0,4)}******
+                            {isCurrentUserHighestBidder
+                              ? lot.highestBid.bidder.email
+                              : `${lot.highestBid.bidder.email?.slice(0, 4) ?? ""}******`}
                           </span>
                         </div>
 
@@ -675,8 +685,8 @@ export default function AuctionProductDetailsPage() {
                       {lot.winner
                         ? `${lot.winner.firstName} ${lot.winner.lastName}`
                         : lot.status === "unsold"
-                          ? "Reserve Not Met (No Winner)"
-                          : "Still open"}
+                          ? "Not Sold (No Winner)"
+                          : canBid ? "Still open" : formatCondition(lot.status)}
                     </span>
                   </div>
                   <div className="flex items-center justify-between rounded-xl border border-[#dce6f5] px-3 py-3">

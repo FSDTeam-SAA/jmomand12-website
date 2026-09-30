@@ -100,7 +100,7 @@ interface Product {
   price?: number;
   retailPrice?: number;
   discountPercentage?: number;
-  reservePrice?: number;
+
   manufacturer?: string;
   averageReview: number;
   createdAt: string;
@@ -556,8 +556,8 @@ export default function AuctionListingPage() {
                     const isAuction = product.type === "for_auction";
                     const isForSale = product.type === "for_sale";
                     
-                    const priceLabel = isAuction ? "Reserve Price" : "Current Price";
-                    const displayPrice = isAuction ? product.reservePrice : product.price;
+                    const priceLabel = isAuction ? "" : "Current Price";
+                    const displayPrice = isAuction ? "" : product.price;
                     const primaryImage = product.images?.[0]?.url || "/images/placeholder.png";
 
                     return (
@@ -617,9 +617,11 @@ export default function AuctionListingPage() {
                           <div className="mt-4 flex items-center justify-between border-t border-[#f1f5f9] pt-3">
                             <div>
                               <div className="text-[10px] text-[#9ca3af] uppercase">{priceLabel}</div>
-                              <div className="text-[15px] font-black text-[#111827]">
-                                ${displayPrice ? displayPrice.toFixed(2) : "0.00"}
-                              </div>
+                              {isForSale && (
+                                <div className="text-[15px] font-black text-[#111827]">
+                                  ${displayPrice ? displayPrice.toFixed(2) : "0.00"}
+                                </div>
+                              )}
                               {isForSale && product.retailPrice != null && (
                                 <div className="mt-1 flex items-center gap-1.5 text-[11px] font-semibold">
                                   <span className="text-slate-400 line-through">

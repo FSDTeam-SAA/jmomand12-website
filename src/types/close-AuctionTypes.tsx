@@ -12,13 +12,13 @@ interface AuctionProduct {
   category: string;
   condition: string;
   day: string;
-  reservePrice: number;
+
   inventoryStatus: string;
   auctionProductId?: string;
   auctionProductStatus?: string;
   currentBid?: number;
   soldPrice?: number;
-  isReserveMet?: boolean;
+
   images: AuctionProductImage[];
   totalReview: number;
   type: string;

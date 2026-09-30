@@ -6,7 +6,7 @@ export type AuctionProductDetails = {
   status: string;
   canBid: boolean;
   startingBid: number;
-  reservePrice?: number;
+
   bidIncrement: number;
   highestBid: {
     amount: number;
@@ -49,7 +49,7 @@ export type AuctionProductDetails = {
     category: string;
     condition: string;
     day?: string;
-    reservePrice?: number;
+
     inventoryStatus: string;
     images: Array<{
       public_id: string;
@@ -83,7 +83,7 @@ export type ActiveAuctionProduct = {
     category: string;
     condition: string;
     day?: string;
-    reservePrice?: number;
+
     inventoryStatus: string;
     images: Array<{
       public_id: string;

@@ -66,7 +66,6 @@ export default function ActiveAuctions() {
               const currentBidVal =
                 product.highestBid?.amount ||
                 product.startingBid ||
-                product.productId?.reservePrice ||
                 0;
               const displayBid = `$${currentBidVal}`;
               const title = product.productId?.title || "Untitled Auction";

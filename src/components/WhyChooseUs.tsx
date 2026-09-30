@@ -29,9 +29,9 @@ const features = [
     icon: Warehouse,
   },
   {
-    title: "Reserve Price Protection",
+    title: "Auction Updates",
     description:
-      "Fair bidding experience with transparent reserve prices on high-value premium items.",
+      "Track current bids, auction schedules, and final results.",
     icon: Scale,
   },
   {

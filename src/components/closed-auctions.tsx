@@ -146,7 +146,7 @@ export default function ClosedAuctions() {
                         </span>
                         {isUnsold ? (
                           <span className="text-[10px] font-bold text-red-100 uppercase tracking-wider block mt-0.5">
-                            Reserve Not Met
+                            Not Sold
                           </span>
                         ) : null}
                       </div>
@@ -170,9 +170,13 @@ export default function ClosedAuctions() {
                         <h4 className={`mt-2 text-lg font-bold ${isSold ? "text-gray-900" : "text-red-600"}`}>
                           {isSold && typeof winningAmount === "number" && winningAmount > 0
                             ? `$${winningAmount.toFixed(2)}`
-                            : isUnsold
-                              ? "Reserve Not Met"
-                              : "Not Sold"}
+                            : isSold
+                              ? "Sold"
+                              : isUnsold
+                                ? "Not Sold"
+                                : productStatus === "ended"
+                                  ? "Auction Closed"
+                                  : productStatus?.replace(/_/g, " ") || "Auction Closed"}
                         </h4>
                       </div>
 

@@ -266,7 +266,7 @@ export default function AuctionCard({
           <div className="mb-5 flex items-center justify-between border-t border-slate-100 pt-4">
             <div>
               <p className="text-[9px] font-extrabold tracking-wider uppercase text-slate-400">
-                {status === "active" ? "Current Bid" : "Reserve Price"}
+                {status === "upcoming" ? "Starting Bid" : "Current Bid"}
               </p>
               <h4 className="mt-1 text-lg font-black text-slate-900 tracking-tight">
                 {currentBid}

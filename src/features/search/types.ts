@@ -12,7 +12,7 @@ export type SearchProductResult = {
   }>;
   type: "for_sale" | "for_auction" | string;
   price?: number;
-  reservePrice?: number;
+
   averageReview?: number;
 };
 

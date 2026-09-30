@@ -71,9 +71,8 @@ const SimilarAuctions = () => {
             auction.title || primaryProduct?.title || "Untitled Auction";
           const displayCategory =
             primaryProduct?.category || "General Marketplace";
-          const displayReservePrice = primaryProduct?.reservePrice
-            ? `$${primaryProduct.reservePrice}`
-            : "N/A";
+          const currentBid = primaryProduct?.currentBid;
+          const displayBid = currentBid != null ? `$${currentBid}` : "N/A";
 
           return (
             <AuctionCard
@@ -83,7 +82,7 @@ const SimilarAuctions = () => {
               title={displayTitle}
               category={displayCategory}
               bids={0}
-              currentBid={displayReservePrice}
+              currentBid={displayBid}
               timeLeft={calculateTimeLeft(auction.endsAt)}
             />
           );

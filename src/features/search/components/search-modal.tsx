@@ -120,7 +120,7 @@ export function SearchModal({ open, onOpenChange }: SearchModalProps) {
                 <div className="space-y-3">
                   {results.map((product) => {
                     const primaryImage = product.images?.[0]?.url || "/images/login.jpg";
-                    const price = product.type === "for_auction" ? product.reservePrice : product.price;
+                    const price = product.type === "for_sale" ? product.price : undefined;
 
                     return (
                       <Link
@@ -149,7 +149,9 @@ export function SearchModal({ open, onOpenChange }: SearchModalProps) {
                           </p>
                         </div>
                         <div className="text-right">
-                          <p className="text-sm font-semibold text-[#111827]">{formatCurrency(price)}</p>
+                          {product.type === "for_sale" && (
+                            <p className="text-sm font-semibold text-[#111827]">{formatCurrency(price)}</p>
+                          )}
                           <div className="mt-2 inline-flex items-center gap-1 text-xs font-semibold text-[#fe6819]">
                             Open
                             <ArrowUpRight className="h-3 w-3" />

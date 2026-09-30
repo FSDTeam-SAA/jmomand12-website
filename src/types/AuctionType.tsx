@@ -11,7 +11,7 @@ interface AuctionProduct {
   category: string;
   condition: string;
   day: string;
-  reservePrice: number;
+  currentBid?: number;
   inventoryStatus: string;
   images: AuctionProductImage[];
   totalReview: number;
