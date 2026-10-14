@@ -11,27 +11,15 @@ export type AuctionProductDetails = {
   highestBid: {
     amount: number;
     placedAt: string | null;
-    bidder: {
-      _id: string;
-      firstName: string;
-      lastName: string;
-      email: string;
-      role: string;
-      isVerified: boolean;
-      hasDefaultPaymentMethod: boolean;
-      isBlocked: boolean;
-      isSuspend: boolean;
-    } | null;
   };
+  bidHistory: Array<{
+    amount: number;
+    placedAt: string;
+  }>;
+  totalBidders: number;
+  totalBids: number;
   minimumNextBid: number;
-  winner: {
-    _id: string;
-    firstName: string;
-    lastName: string;
-  } | null;
   closedAt: string | null;
-  paymentStatus: string;
-  pickupStatus: string;
   auction: {
     _id: string;
     auctionId: string;
@@ -104,11 +92,7 @@ export type ActiveAuctionProduct = {
   highestBid?: {
     amount: number;
     placedAt: string | null;
-    bidder: string | null;
-    bid: string | null;
   } | null;
-  paymentStatus: string;
-  pickupStatus: string;
   paymentRetryCount?: number;
   createdAt?: string;
   updatedAt?: string;

@@ -35,6 +35,8 @@ function formatCurrency(value?: number | null) {
 
 function formatCondition(value?: string) {
   if (!value) return "Unknown";
+  if (value === "unsold" || value === "ended") return "Closed";
+  if (value === "sold") return "Sold";
   return value.replace(/_/g, " ");
 }
 
@@ -89,7 +91,7 @@ export default function AuctionProductDetailsPage() {
   const params = useParams();
   const router = useRouter();
   const queryClient = useQueryClient();
-  const { data: session, status } = useSession();
+  const { status } = useSession();
   const productId = String(params?.id || params?.productId || "");
   const [activeImageIndex, setActiveImageIndex] = useState(0);
   const [bidAmount, setBidAmount] = useState("");
@@ -133,11 +135,14 @@ export default function AuctionProductDetailsPage() {
 
   const lot = lotQuery.data;
   const product = lot?.product;
-  const isCurrentUserHighestBidder = Boolean(
-    status === "authenticated" &&
-      session?.user?.id &&
-      session.user.id === lot?.highestBid?.bidder?._id,
-  );
+  const activityBids = lot?.bidHistory?.length
+    ? lot.bidHistory
+    : lot?.highestBid?.amount
+      ? [{
+          amount: lot.highestBid.amount,
+          placedAt: lot.highestBid.placedAt,
+        }]
+      : [];
   const galleryImages = product?.images?.length
     ? product.images
     : [{ public_id: "placeholder", url: "/images/login.jpg" }];
@@ -347,6 +352,21 @@ export default function AuctionProductDetailsPage() {
                   </div>
                 </div>
 
+                <div className="grid grid-cols-2 gap-3 border-b border-[#dce6f5] py-4">
+                  <div className="rounded-[8px] bg-[#f8fbff] px-4 py-3 text-center">
+                    <div className="text-[11px] text-[#6b7280]">Total Bidders</div>
+                    <div className="mt-1 text-[16px] font-semibold text-[#111827]">
+                      {lot.totalBidders ?? "—"}
+                    </div>
+                  </div>
+                  <div className="rounded-[8px] bg-[#f8fbff] px-4 py-3 text-center">
+                    <div className="text-[11px] text-[#6b7280]">Total Bids</div>
+                    <div className="mt-1 text-[16px] font-semibold text-[#111827]">
+                      {lot.totalBids ?? "—"}
+                    </div>
+                  </div>
+                </div>
+
                 <div className="mt-4">
                   <h2 className="text-[14px] font-bold text-[#111827]">
                     Product description
@@ -502,7 +522,7 @@ export default function AuctionProductDetailsPage() {
 
                   {lot.status === "unsold" ? (
                     <div className="rounded-[8px] border border-amber-200 bg-amber-50 px-4 py-3 text-[12px] text-amber-800">
-                      <strong className="block font-semibold">Not Sold</strong>
+                      <strong className="block font-semibold">Closed</strong>
                       This auction ended without a sale. No payment was charged.
                     </div>
                   ) : !hasPaymentMethod ? (
@@ -596,85 +616,36 @@ export default function AuctionProductDetailsPage() {
                 <div className="space-y-3 p-4 text-[12px] text-[#475569]">
                   <div className="rounded-xl border border-[#dce6f5] p-4 space-y-3">
                     <h3 className="text-lg font-semibold text-[#111827]">
-                      Highest Bidder
+                      Bid history
                     </h3>
 
-                    {lot.highestBid?.bidder ? (
-                      <>
-                        <div className="flex items-center justify-between border-b pb-2">
-                          <span className="text-gray-500">Name</span>
-                          <span className="font-medium">
-                            {isCurrentUserHighestBidder
-                              ? [lot.highestBid.bidder.firstName, lot.highestBid.bidder.lastName]
-                                  .filter(Boolean)
-                                  .join(" ")
-                              : `${lot.highestBid.bidder.firstName.slice(0, 3)}****`}
-                          </span>
-                        </div>
-
-                        <div className="flex items-center justify-between border-b pb-2">
-                          <span className="text-gray-500">Email</span>
-                          <span className="font-medium">
-                            {isCurrentUserHighestBidder
-                              ? lot.highestBid.bidder.email
-                              : `${lot.highestBid.bidder.email?.slice(0, 4) ?? ""}******`}
-                          </span>
-                        </div>
-
-                        {/* <div className="flex items-center justify-between border-b pb-2">
-                          <span className="text-gray-500">Role</span>
-                          <span className="font-medium capitalize">
-                            {lot.highestBid.bidder.role}
-                          </span>
-                        </div> */}
-                        
-                        <div className="flex items-center justify-between border-b pb-2">
-                          <span className="text-gray-500">Verified</span>
-                          <span
-                            className={`font-medium ${
-                              lot.highestBid.bidder.isVerified
-                                ? "text-green-600"
-                                : "text-red-600"
-                            }`}
+                    {activityBids.length ? (
+                      <div className="divide-y divide-[#dce6f5]">
+                        {activityBids.map((bid, index) => (
+                          <div
+                            key={`${bid.amount}-${index}`}
+                            className="flex items-start justify-between gap-3 py-3 first:pt-0 last:pb-0"
                           >
-                            {lot.highestBid.bidder.isVerified ? "Yes" : "No"}
-                          </span>
-                        </div>
-
-                        <div className="flex items-center justify-between border-b pb-2">
-                          <span className="text-gray-500">Payment Method</span>
-                          <span
-                            className={`font-medium ${
-                              lot.highestBid.bidder.hasDefaultPaymentMethod
-                                ? "text-green-600"
-                                : "text-red-600"
-                            }`}
-                          >
-                            {lot.highestBid.bidder.hasDefaultPaymentMethod
-                              ? "Added"
-                              : "Not Added"}
-                          </span>
-                        </div>
-
-                        <div className="flex items-center justify-between">
-                          <span className="text-gray-500">Status</span>
-                          <span
-                            className={`rounded-full px-2 py-1 text-xs font-semibold ${
-                              lot.highestBid.bidder.isBlocked
-                                ? "bg-red-100 text-red-600"
-                                : lot.highestBid.bidder.isSuspend
-                                  ? "bg-yellow-100 text-yellow-700"
-                                  : "bg-green-100 text-green-700"
-                            }`}
-                          >
-                            {lot.highestBid.bidder.isBlocked
-                              ? "Blocked"
-                              : lot.highestBid.bidder.isSuspend
-                                ? "Suspended"
-                                : "Active"}
-                          </span>
-                        </div>
-                      </>
+                            <div className="min-w-0">
+                              <div className="flex flex-wrap items-center gap-2">
+                                {index === 0 ? (
+                                  <span className="rounded-full bg-[#e8f0ff] px-2 py-0.5 text-[10px] font-semibold text-[#003da5]">
+                                    Highest bid
+                                  </span>
+                                ) : null}
+                              </div>
+                              <span className="text-[11px] text-[#6b7280]">
+                                {bid.placedAt
+                                  ? new Date(bid.placedAt).toLocaleString()
+                                  : "Unknown time"}
+                              </span>
+                            </div>
+                            <span className="shrink-0 font-semibold text-[#111827]">
+                              {formatCurrency(bid.amount)}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
                     ) : (
                       <p className="text-center text-gray-500">No bids yet</p>
                     )}
@@ -682,19 +653,11 @@ export default function AuctionProductDetailsPage() {
                   <div className="flex items-center justify-between rounded-xl border border-[#dce6f5] px-3 py-3">
                     <span>Winning status</span>
                     <span className="font-semibold text-[#111827]">
-                      {lot.winner
-                        ? `${lot.winner.firstName} ${lot.winner.lastName}`
+                      {lot.status === "sold"
+                        ? "Sold"
                         : lot.status === "unsold"
-                          ? "Not Sold (No Winner)"
+                          ? "Closed"
                           : canBid ? "Still open" : formatCondition(lot.status)}
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between rounded-xl border border-[#dce6f5] px-3 py-3">
-                    <span>Payment status</span>
-                    <span className="font-semibold capitalize text-[#111827]">
-                      {lot.status === "unsold"
-                        ? "Not Applicable"
-                        : formatCondition(lot.paymentStatus)}
                     </span>
                   </div>
                   {!hasPaymentMethod ? (

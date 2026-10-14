@@ -53,7 +53,7 @@ export default function ClosedAuctions() {
         day: "numeric",
         year: "numeric",
       });
-    } catch (e) {
+    } catch {
       return "N/A";
     }
   };
@@ -112,7 +112,6 @@ export default function ClosedAuctions() {
                 primaryAuctionProduct?.status ||
                 item.status;
               const isSold = productStatus === "sold";
-              const isUnsold = productStatus === "unsold";
 
               const displayImage =
                 primaryProduct?.images?.[0]?.url || "/closed.png";
@@ -144,11 +143,6 @@ export default function ClosedAuctions() {
                         <span className="text-base font-black text-white block">
                           {isSold ? "SOLD" : "CLOSED"}
                         </span>
-                        {isUnsold ? (
-                          <span className="text-[10px] font-bold text-red-100 uppercase tracking-wider block mt-0.5">
-                            Not Sold
-                          </span>
-                        ) : null}
                       </div>
                     </div>
                   </div>
@@ -172,11 +166,7 @@ export default function ClosedAuctions() {
                             ? `$${winningAmount.toFixed(2)}`
                             : isSold
                               ? "Sold"
-                              : isUnsold
-                                ? "Not Sold"
-                                : productStatus === "ended"
-                                  ? "Auction Closed"
-                                  : productStatus?.replace(/_/g, " ") || "Auction Closed"}
+                              : "Closed"}
                         </h4>
                       </div>
 
