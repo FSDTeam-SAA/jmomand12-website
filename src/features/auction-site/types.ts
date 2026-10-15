@@ -5,6 +5,7 @@ export type AuctionProduct = {
   bids: number;
   image: string;
   currentBid: string;
+  retailPrice?: number;
   timeLeft: string;
   badge?: {
     label: string;

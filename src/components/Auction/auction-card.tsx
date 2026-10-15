@@ -64,6 +64,7 @@ export default function AuctionCard({
   category,
   href,
   currentBid,
+  retailPrice,
   timeLeft,
   bids = 0,
   description = "Excellent condition product",
@@ -271,6 +272,11 @@ export default function AuctionCard({
               <h4 className="mt-1 text-lg font-black text-slate-900 tracking-tight">
                 {currentBid}
               </h4>
+              {retailPrice != null && (
+                <p className="mt-1 text-xs font-semibold text-slate-500">
+                  Retail Price: <span className="line-through">${retailPrice.toFixed(2)}</span>
+                </p>
+              )}
             </div>
 
             <div className="text-right">

@@ -12,6 +12,8 @@ interface AuctionProduct {
   condition: string;
   day: string;
   currentBid?: number;
+  minimumNextBid?: number;
+  retailPrice?: number;
   inventoryStatus: string;
   images: AuctionProductImage[];
   totalReview: number;
@@ -75,6 +77,7 @@ export interface AuctionCardProps {
   category: string;
   bids: number;
   currentBid: string;
+  retailPrice?: number;
   timeLeft: string;
   href: string;
 }

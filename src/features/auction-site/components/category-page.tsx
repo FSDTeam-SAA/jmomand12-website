@@ -99,6 +99,7 @@ interface Product {
   quantity: number;
   price?: number;
   retailPrice?: number;
+  currentBid?: number;
   discountPercentage?: number;
 
   manufacturer?: string;
@@ -556,8 +557,8 @@ export default function AuctionListingPage() {
                     const isAuction = product.type === "for_auction";
                     const isForSale = product.type === "for_sale";
                     
-                    const priceLabel = isAuction ? "" : "Current Price";
-                    const displayPrice = isAuction ? "" : product.price;
+                    const priceLabel = isAuction ? "Current Bid" : "Current Price";
+                    const displayPrice = isAuction ? product.currentBid : product.price;
                     const primaryImage = product.images?.[0]?.url || "/images/placeholder.png";
 
                     return (
@@ -617,17 +618,18 @@ export default function AuctionListingPage() {
                           <div className="mt-4 flex items-center justify-between border-t border-[#f1f5f9] pt-3">
                             <div>
                               <div className="text-[10px] text-[#9ca3af] uppercase">{priceLabel}</div>
-                              {isForSale && (
+                              {(isForSale || displayPrice != null) && (
                                 <div className="text-[15px] font-black text-[#111827]">
-                                  ${displayPrice ? displayPrice.toFixed(2) : "0.00"}
+                                  ${displayPrice != null ? displayPrice.toFixed(2) : "0.00"}
                                 </div>
                               )}
-                              {isForSale && product.retailPrice != null && (
+                              {product.retailPrice != null && (
                                 <div className="mt-1 flex items-center gap-1.5 text-[11px] font-semibold">
+                                  {isAuction && <span className="text-slate-500">Retail Price:</span>}
                                   <span className="text-slate-400 line-through">
                                     ${product.retailPrice.toFixed(2)}
                                   </span>
-                                  {product.discountPercentage != null && (
+                                  {isForSale && product.discountPercentage != null && (
                                     <span className="text-emerald-600">
                                       Save {product.discountPercentage}%
                                     </span>

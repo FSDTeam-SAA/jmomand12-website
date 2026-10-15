@@ -329,6 +329,11 @@ export default function AuctionProductDetailsPage() {
                     <div className="mt-1 text-[16px] font-semibold text-[#111827]">
                       {formatCurrency(currentBid)}
                     </div>
+                    {product.retailPrice != null && (
+                      <div className="mt-1 text-xs text-[#6b7280]">
+                        Retail Price: <span className="line-through">{formatCurrency(product.retailPrice)}</span>
+                      </div>
+                    )}
                   </div>
                   <div className="text-center md:border-r md:border-[#dce6f5]">
                     <div className="text-[11px] text-[#6b7280]">

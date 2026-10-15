@@ -84,6 +84,7 @@ export default function ActiveAuctions() {
                   description={description}
                   condition={condition}
                   currentBid={displayBid}
+                  retailPrice={product.productId?.retailPrice}
                   timeLeft={product.auctionId?.endsAt || ""}
                   status={product.status}
                   auctionProductId={product._id}

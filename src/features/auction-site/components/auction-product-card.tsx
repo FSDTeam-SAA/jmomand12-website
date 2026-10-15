@@ -63,6 +63,11 @@ export function AuctionProductCard({
             <div className="text-[15px] font-black text-[#111827]">
               {product.currentBid}
             </div>
+            {product.retailPrice != null && (
+              <div className="mt-1 text-[11px] font-semibold text-[#6b7280]">
+                Retail Price: <span className="line-through">${product.retailPrice.toFixed(2)}</span>
+              </div>
+            )}
           </div>
           <div className="text-right">
             <div className="text-[10px] text-[#6b7280]">Time Left</div>

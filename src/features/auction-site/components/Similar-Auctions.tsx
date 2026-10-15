@@ -71,7 +71,9 @@ const SimilarAuctions = () => {
             auction.title || primaryProduct?.title || "Untitled Auction";
           const displayCategory =
             primaryProduct?.category || "General Marketplace";
-          const currentBid = primaryProduct?.currentBid;
+          const currentBid = primaryProduct?.currentBid && primaryProduct.currentBid > 0
+            ? primaryProduct.currentBid
+            : primaryProduct?.minimumNextBid;
           const displayBid = currentBid != null ? `$${currentBid}` : "N/A";
 
           return (
@@ -83,6 +85,7 @@ const SimilarAuctions = () => {
               category={displayCategory}
               bids={0}
               currentBid={displayBid}
+              retailPrice={primaryProduct?.retailPrice}
               timeLeft={calculateTimeLeft(auction.endsAt)}
             />
           );

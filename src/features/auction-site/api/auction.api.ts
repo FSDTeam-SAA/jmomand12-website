@@ -36,6 +36,7 @@ export type AuctionProductDetails = {
     description: string;
     category: string;
     condition: string;
+    retailPrice?: number;
     day?: string;
 
     inventoryStatus: string;
@@ -70,6 +71,7 @@ export type ActiveAuctionProduct = {
     description: string;
     category: string;
     condition: string;
+    retailPrice?: number;
     day?: string;
 
     inventoryStatus: string;
