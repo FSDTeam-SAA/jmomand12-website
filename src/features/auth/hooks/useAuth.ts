@@ -59,7 +59,7 @@ export function useAuth() {
   );
 
   const signup = useCallback(
-    async ({ name, email, password, remember }: SignUpPayload) => {
+    async ({ name, email, password, remember, acceptedTerms }: SignUpPayload) => {
       setLoading(true);
       setError("");
 
@@ -70,6 +70,7 @@ export function useAuth() {
           lastName,
           email,
           password,
+          acceptedTerms,
         });
 
         const accessToken = response.data?.data?.accessToken;

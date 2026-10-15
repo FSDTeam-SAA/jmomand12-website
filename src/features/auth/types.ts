@@ -15,6 +15,7 @@ export type SignUpPayload = {
   email: string;
   password: string;
   remember: boolean;
+  acceptedTerms: boolean;
 };
 
 export type ResetPasswordPayload = {

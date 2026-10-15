@@ -15,6 +15,7 @@ export default function SignUpPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [remember, setRemember] = useState(false);
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [passwordError, setPasswordError] = useState("");
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
@@ -26,7 +27,11 @@ export default function SignUpPage() {
       return;
     }
 
-    await signup({ name, email, password, remember });
+    if (!acceptedTerms) {
+      return;
+    }
+
+    await signup({ name, email, password, remember, acceptedTerms });
   };
 
   return (
@@ -139,6 +144,32 @@ export default function SignUpPage() {
           />
           Remember me
         </label>
+
+        <div className="rounded-xl border border-[#dce6f5] bg-[#f7f9fc] p-4">
+          <div className="flex items-start gap-3">
+            <input
+              id="acceptedTerms"
+              name="acceptedTerms"
+              type="checkbox"
+              checked={acceptedTerms}
+              onChange={(event) => setAcceptedTerms(event.target.checked)}
+              required
+              className="mt-1 h-4 w-4 shrink-0 cursor-pointer accent-[#0057FF]"
+            />
+            <label htmlFor="acceptedTerms" className="text-sm leading-6 text-gray-700">
+              I have read and agree to the{" "}
+              <Link
+                href="/registration-terms"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-semibold text-[#0057FF] underline underline-offset-2 hover:text-[#003fba]"
+              >
+                Website Disclaimer &amp; Auction Terms and Conditions
+              </Link>
+              .
+            </label>
+          </div>
+        </div>
 
         {passwordError || error ? (
           <p className="text-sm text-red-500">{passwordError || error}</p>
