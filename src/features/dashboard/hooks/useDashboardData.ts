@@ -2,6 +2,7 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
+  addToWishlist,
   createPickupScheduleRequest,
   getAvailablePickupSlots,
   getMyDashboardAuctionActivity,
@@ -124,6 +125,17 @@ export function useCreatePickupScheduleRequest() {
       queryClient.invalidateQueries({ queryKey: dashboardKeys.invoices });
       queryClient.invalidateQueries({ queryKey: dashboardKeys.readyInvoices });
       queryClient.invalidateQueries({ queryKey: dashboardKeys.auctionActivity });
+    },
+  });
+}
+
+export function useAddToWishlist() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (productId: string) => addToWishlist(productId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: dashboardKeys.wishlist });
     },
   });
 }

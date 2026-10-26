@@ -98,6 +98,14 @@ export async function getMyWishlist() {
   return response.data.data;
 }
 
+export async function addToWishlist(productId: string) {
+  const response = await api.post<ApiResponse<unknown>>("/carts", {
+    productId,
+    type: "wishlist",
+  });
+  return response.data;
+}
+
 export async function removeWishlistItem(wishlistItemId: string) {
   await api.delete<ApiResponse<null>>(`/carts/${wishlistItemId}`);
 }

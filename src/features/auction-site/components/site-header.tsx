@@ -29,7 +29,6 @@ import {
 
 // Lucide Icons
 import {
-  Check,
   ChevronRight,
   Facebook,
   Gavel,
@@ -150,13 +149,7 @@ export function SiteHeader() {
             TOP ANNOUNCEMENT BAR (Desktop & Tablet)
            ========================================== */}
         <div className="hidden border-b border-slate-800 bg-[#111827] text-slate-400 md:block">
-          <div className="container mx-auto flex h-9 items-center justify-between px-4 text-[11px] font-medium tracking-wide">
-            <div className="flex items-center gap-2 select-none">
-              <Check className="h-3.5 w-3.5 text-emerald-400 stroke-[3]" />
-              <span className="text-slate-300">
-                Free Shipping On All Orders Over $50
-              </span>
-            </div>
+          <div className="container mx-auto flex h-9 items-center justify-end px-4 text-[11px] font-medium tracking-wide">
             <div className="flex items-center gap-1.5 transition-colors hover:text-white">
               <Phone className="h-3 w-3 text-slate-400" />
               <a href="tel:8085550111">Contact: (808) 555-0111</a>

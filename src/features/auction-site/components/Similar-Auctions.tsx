@@ -83,6 +83,7 @@ const SimilarAuctions = () => {
               image={displayImage}
               title={displayTitle}
               category={displayCategory}
+              productId={primaryProduct?._id}
               bids={0}
               currentBid={displayBid}
               retailPrice={primaryProduct?.retailPrice}

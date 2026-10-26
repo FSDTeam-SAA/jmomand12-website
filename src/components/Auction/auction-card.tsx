@@ -1,7 +1,7 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Loader2 } from "lucide-react";
+import { Heart, Loader2 } from "lucide-react";
 import { useSession } from "next-auth/react";
 import Image from "next/image";
 import Link from "next/link";
@@ -19,7 +19,12 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { getMyProfile } from "@/features/dashboard/api/dashboard.api";
-import { dashboardKeys } from "@/features/dashboard/hooks/useDashboardData";
+import {
+  dashboardKeys,
+  useAddToWishlist,
+  useDashboardWishlist,
+  useRemoveWishlistItem,
+} from "@/features/dashboard/hooks/useDashboardData";
 import { createBid } from "@/features/payments/api/payment.api";
 import { PaymentMethodDialog } from "@/features/payments/components/payment-method-dialog";
 import { BidPaymentConfirmationDialog } from "@/features/payments/components/bid-payment-confirmation-dialog";
@@ -27,6 +32,7 @@ import { AuctionCardProps } from "../../types/AuctionType";
 
 // Extended inline interface safely handling the extra properties from the image design
 interface RefinedAuctionCardProps extends AuctionCardProps {
+  productId?: string;
   description?: string;
   condition?: string;
   status?: string;
@@ -59,6 +65,7 @@ function getErrorMessage(error: unknown, fallback: string) {
 }
 
 export default function AuctionCard({
+  productId,
   image,
   title,
   category,
@@ -76,8 +83,58 @@ export default function AuctionCard({
   highestBidAmount = 0,
   onBidPlaced,
 }: RefinedAuctionCardProps) {
-  const { status: authStatus } = useSession();
+  const { data: session, status: authStatus } = useSession();
+  const token = session?.accessToken;
   const queryClient = useQueryClient();
+
+  const wishlistQuery = useDashboardWishlist(Boolean(token));
+  const addToWishlistMutation = useAddToWishlist();
+  const removeWishlistItemMutation = useRemoveWishlistItem();
+
+  const effectiveId =
+    productId ||
+    auctionProductId ||
+    (href.includes("/auction-details/")
+      ? href.split("/auction-details/")[1]?.split("?")[0]
+      : undefined);
+
+  const existingWishlistItem = effectiveId
+    ? wishlistQuery.data?.find(
+        (item) =>
+          item.productId?._id === effectiveId ||
+          item.productId?._id === productId ||
+          item.productId?._id === auctionProductId
+      )
+    : undefined;
+  const isWishlisted = Boolean(existingWishlistItem);
+
+  const handleWishlistClick = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    if (!token) {
+      toast.error("Please log in to save items to your wishlist.");
+      return;
+    }
+
+    if (!effectiveId) return;
+
+    if (existingWishlistItem) {
+      try {
+        await removeWishlistItemMutation.mutateAsync(existingWishlistItem._id);
+        toast.success("Removed from wishlist.");
+      } catch (err: any) {
+        toast.error(err?.message || "Failed to remove from wishlist.");
+      }
+    } else {
+      try {
+        await addToWishlistMutation.mutateAsync(effectiveId);
+        toast.success(`${title} added to wishlist.`);
+      } catch (err: any) {
+        toast.error(err?.message || "Failed to add to wishlist.");
+      }
+    }
+  };
 
   const [authModalOpen, setAuthModalOpen] = useState(false);
   const [paymentDialogOpen, setPaymentDialogOpen] = useState(false);
@@ -209,33 +266,53 @@ export default function AuctionCard({
     <>
       <div className="group flex flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white transition-all duration-300">
         {/* Visual Window Container with Gradient Tinted Background */}
-        <Link
-          href={href}
-          className="relative flex aspect-square w-full items-center justify-center p-6 cursor-pointer"
-        >
-          <div className="relative h-full w-full transition-transform duration-500 ease-out group-hover:scale-105">
-            <Image
-              src={image}
-              alt={title}
-              fill
-              className="object-contain"
-              priority
-            />
-          </div>
+        <div className="relative">
+          <Link
+            href={href}
+            className="relative flex aspect-square w-full items-center justify-center p-6 cursor-pointer"
+          >
+            <div className="relative h-full w-full transition-transform duration-500 ease-out group-hover:scale-105">
+              <Image
+                src={image}
+                alt={title}
+                fill
+                className="object-contain"
+                priority
+              />
+            </div>
 
-          {/* Badge indicator based on status */}
-          {status === "active" ? (
-            <div className="absolute left-4 top-4 flex items-center gap-1.5 rounded-lg bg-[#10B981]/10 border border-[#10B981]/20 px-2.5 py-1 text-[9px] font-black tracking-widest text-[#10B981] shadow-sm">
-              <span className="h-1.5 w-1.5 rounded-full bg-[#10B981] animate-pulse"></span>
-              ACTIVE
-            </div>
-          ) : (
-            <div className="absolute left-4 top-4 flex items-center gap-1.5 rounded-lg bg-orange-50 border border-orange-200/80 px-2.5 py-1 text-[9px] font-black tracking-widest text-orange-600 shadow-sm">
-              <span className="h-1.5 w-1.5 rounded-full bg-orange-500 animate-pulse"></span>
-              AUCTION
-            </div>
-          )}
-        </Link>
+            {/* Badge indicator based on status */}
+            {status === "active" ? (
+              <div className="absolute left-4 top-4 flex items-center gap-1.5 rounded-lg bg-[#10B981]/10 border border-[#10B981]/20 px-2.5 py-1 text-[9px] font-black tracking-widest text-[#10B981] shadow-sm">
+                <span className="h-1.5 w-1.5 rounded-full bg-[#10B981] animate-pulse"></span>
+                ACTIVE
+              </div>
+            ) : (
+              <div className="absolute left-4 top-4 flex items-center gap-1.5 rounded-lg bg-orange-50 border border-orange-200/80 px-2.5 py-1 text-[9px] font-black tracking-widest text-orange-600 shadow-sm">
+                <span className="h-1.5 w-1.5 rounded-full bg-orange-500 animate-pulse"></span>
+                AUCTION
+              </div>
+            )}
+          </Link>
+
+          {effectiveId ? (
+            <button
+              type="button"
+              onClick={handleWishlistClick}
+              disabled={addToWishlistMutation.isPending || removeWishlistItemMutation.isPending}
+              className="absolute right-4 top-4 z-20 flex h-8 w-8 items-center justify-center rounded-full bg-white/90 backdrop-blur-sm shadow-md hover:bg-white transition-all disabled:opacity-50"
+              title={isWishlisted ? "Remove from Wishlist" : "Add to Wishlist"}
+            >
+              <Heart
+                className={`h-4 w-4 transition-colors ${
+                  isWishlisted
+                    ? "fill-red-500 text-red-500"
+                    : "text-gray-600 hover:text-red-500"
+                }`}
+              />
+            </button>
+          ) : null}
+        </div>
 
         {/* Content Section */}
         <div className="flex flex-1 flex-col p-5">

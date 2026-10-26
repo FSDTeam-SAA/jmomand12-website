@@ -7,11 +7,9 @@ import {
   ShoppingCart,
   Heart,
   Menu,
-  Truck,
   X,
   Phone,
   ChevronRight,
-  LogIn,
 } from "lucide-react";
 import AuthStatusButton from "@/features/auth/components/AuthStatusButton";
 import { SiteBrand } from "../features/auction-site/components/site-brand";
@@ -41,11 +39,7 @@ export default function Navbar() {
     <header className="w-full sticky top-0 z-50 transition-all duration-300">
       {/* 1. TOP UTILITY BAR (Desktop Only) */}
       <div className="hidden md:block bg-gray-950 text-gray-400 border-b border-white/5 text-[11px] font-medium tracking-wide">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8 flex h-9 items-center justify-between">
-          <div className="flex items-center gap-2 select-none">
-            <Truck size={13} className="text-orange-500" />
-            <span>Free shipping on all orders over $50</span>
-          </div>
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 flex h-9 items-center justify-end">
           <div className="flex items-center gap-4">
             <a
               href="tel:8085550111"
@@ -54,6 +48,7 @@ export default function Navbar() {
               <Phone size={12} className="text-orange-500" />
               <span>Contact: (808) 555-0111</span>
             </a>
+           
           </div>
         </div>
       </div>
@@ -239,10 +234,6 @@ export default function Navbar() {
 
             {/* Bottom Contact & Utility Drawer Footer */}
             <div className="pt-5 border-t border-white/10 flex flex-col gap-3 text-[11px] text-gray-400 font-medium">
-              <div className="flex items-center gap-2">
-                <Truck size={13} className="text-orange-500 shrink-0" />
-                <span>Free shipping on orders over $50</span>
-              </div>
               <a
                 href="tel:8085550111"
                 className="flex items-center gap-2 hover:text-white transition-colors"

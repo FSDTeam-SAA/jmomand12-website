@@ -88,6 +88,7 @@ export default function ActiveAuctions() {
                   timeLeft={product.auctionId?.endsAt || ""}
                   status={product.status}
                   auctionProductId={product._id}
+                  productId={product.productId?._id}
                   startingBid={product.startingBid}
                   bidIncrement={product.bidIncrement}
                   highestBidAmount={product.highestBid?.amount || 0}

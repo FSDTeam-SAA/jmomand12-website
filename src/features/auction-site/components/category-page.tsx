@@ -8,7 +8,11 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Search, ChevronUp, Star, Filter, Loader2, Heart } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { toast } from "sonner";
-import { dashboardKeys } from "@/features/dashboard/hooks/useDashboardData";
+import {
+  dashboardKeys,
+  useDashboardWishlist,
+  useRemoveWishlistItem,
+} from "@/features/dashboard/hooks/useDashboardData";
 
 // --- Static Meta Configuration matching backend schema limits ---
 
@@ -272,6 +276,9 @@ export default function AuctionListingPage() {
   const products = response?.data || [];
   const meta = response?.meta;
 
+  const wishlistQuery = useDashboardWishlist(Boolean(token));
+  const removeWishlistItemMutation = useRemoveWishlistItem();
+
   // --- Wishlist Mutation ---
   const addToWishlistMutation = useMutation({
     mutationFn: async (productId: string) => {
@@ -339,9 +346,27 @@ export default function AuctionListingPage() {
     setCurrentPage(1);
   };
 
-  const handleWishlistClick = (e: React.MouseEvent, productId: string) => {
+  const handleWishlistClick = async (e: React.MouseEvent, productId: string) => {
     e.stopPropagation(); // Prevent card click navigation
-    addToWishlistMutation.mutate(productId);
+    if (!token) {
+      toast.error("Please log in to manage your wishlist.");
+      return;
+    }
+
+    const existingWishlistItem = wishlistQuery.data?.find(
+      (item) => item.productId?._id === productId
+    );
+
+    if (existingWishlistItem) {
+      try {
+        await removeWishlistItemMutation.mutateAsync(existingWishlistItem._id);
+        toast.success("Removed from wishlist.");
+      } catch (err: any) {
+        toast.error(err?.message || "Failed to remove from wishlist.");
+      }
+    } else {
+      addToWishlistMutation.mutate(productId);
+    }
   };
 
   return (
@@ -566,17 +591,28 @@ export default function AuctionListingPage() {
                         key={product._id} 
                         className="group flex flex-col overflow-hidden rounded-[8px] border border-[#dce6f5] bg-white shadow-sm transition-all hover:shadow-md relative"
                       >
-                        {/* Wishlist Icon - Only for For Sale products */}
-                        {isForSale && (
-                          <button
-                            onClick={(e) => handleWishlistClick(e, product._id)}
-                            disabled={addToWishlistMutation.isPending}
-                            className="absolute right-3 top-3 z-20 p-2 rounded-full bg-white/90 backdrop-blur-sm shadow-md hover:bg-white transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-                            title="Add to Wishlist"
-                          >
-                            <Heart className="h-4 w-4 text-gray-600 hover:text-red-500 transition-colors" />
-                          </button>
-                        )}
+                        {/* Wishlist Icon - For both Auction and Direct Sale */}
+                        {(() => {
+                          const isWishlisted = wishlistQuery.data?.some(
+                            (item) => item.productId?._id === product._id
+                          );
+                          return (
+                            <button
+                              onClick={(e) => handleWishlistClick(e, product._id)}
+                              disabled={addToWishlistMutation.isPending || removeWishlistItemMutation.isPending}
+                              className="absolute right-3 top-3 z-20 p-2 rounded-full bg-white/90 backdrop-blur-sm shadow-md hover:bg-white transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                              title={isWishlisted ? "Remove from Wishlist" : "Add to Wishlist"}
+                            >
+                              <Heart
+                                className={`h-4 w-4 transition-colors ${
+                                  isWishlisted
+                                    ? "fill-red-500 text-red-500"
+                                    : "text-gray-600 hover:text-red-500"
+                                }`}
+                              />
+                            </button>
+                          );
+                        })()}
 
                         {/* Thumbnail wrapper */}
                         <div className="relative h-[200px] w-full bg-[#f8fafc] p-4 flex items-center justify-center">

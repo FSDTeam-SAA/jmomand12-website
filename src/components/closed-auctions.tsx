@@ -42,7 +42,15 @@ export default function ClosedAuctions() {
     },
   });
 
-  const closedAuctionsList = responseData?.data || [];
+  // Get only the 3 most recently closed auctions
+  const closedAuctionsList = (responseData?.data || [])
+    .slice()
+    .sort((a, b) => {
+      const timeB = b.endsAt ? new Date(b.endsAt).getTime() : 0;
+      const timeA = a.endsAt ? new Date(a.endsAt).getTime() : 0;
+      return timeB - timeA;
+    })
+    .slice(0, 3);
 
   // Helper function to format ISO date to descriptive "MMM DD, YYYY" format
   const formatClosedDate = (dateString: string) => {
@@ -69,8 +77,8 @@ export default function ClosedAuctions() {
         {/* Dynamic Skeleton Grid or Content Rendering */}
         {isLoading ? (
           /* --- Shadcn UI Skeleton Grid Layout matching your layout structure --- */
-          <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
-            {Array.from({ length: 4 }).map((_, index) => (
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            {Array.from({ length: 3 }).map((_, index) => (
               <div key={index} className="overflow-hidden rounded-lg space-y-4">
                 {/* Image Skeleton */}
                 <Skeleton className="h-96 w-full rounded-t-lg" />
@@ -102,7 +110,7 @@ export default function ClosedAuctions() {
           </div>
         ) : (
           /* Cards Grid Layer mapped dynamically from response */
-          <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {closedAuctionsList.map((item) => {
               // Primary product and fallback management
               const primaryProduct = item.products?.[0];

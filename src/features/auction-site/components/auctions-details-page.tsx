@@ -9,6 +9,7 @@ import {
   ChevronLeft,
   ChevronRight,
   CreditCard,
+  Heart,
   Loader2,
   Lock,
   ShieldCheck,
@@ -17,7 +18,12 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
-import { dashboardKeys } from "@/features/dashboard/hooks/useDashboardData";
+import {
+  dashboardKeys,
+  useAddToWishlist,
+  useDashboardWishlist,
+  useRemoveWishlistItem,
+} from "@/features/dashboard/hooks/useDashboardData";
 import { getMyProfile } from "@/features/dashboard/api/dashboard.api";
 import { PaymentMethodDialog } from "@/features/payments/components/payment-method-dialog";
 import { BidPaymentConfirmationDialog } from "@/features/payments/components/bid-payment-confirmation-dialog";
@@ -91,7 +97,8 @@ export default function AuctionProductDetailsPage() {
   const params = useParams();
   const router = useRouter();
   const queryClient = useQueryClient();
-  const { status } = useSession();
+  const { data: session, status } = useSession();
+  const token = session?.accessToken;
   const productId = String(params?.id || params?.productId || "");
   const [activeImageIndex, setActiveImageIndex] = useState(0);
   const [bidAmount, setBidAmount] = useState("");
@@ -101,6 +108,10 @@ export default function AuctionProductDetailsPage() {
   const [queuedBidAfterPayment, setQueuedBidAfterPayment] = useState<
     number | null
   >(null);
+
+  const wishlistQuery = useDashboardWishlist(Boolean(token));
+  const addToWishlistMutation = useAddToWishlist();
+  const removeWishlistItemMutation = useRemoveWishlistItem();
 
   const lotQuery = useQuery({
     queryKey: ["auction-product-details", productId],
@@ -159,6 +170,35 @@ export default function AuctionProductDetailsPage() {
     lot?.canBid && !getCountdownParts(lot?.auction?.endsAt).ended,
   );
   const statusLabel = lot?.status ? formatCondition(lot.status) : "loading";
+
+  const productTargetId = product?._id || productId;
+  const existingWishlistItem = wishlistQuery.data?.find(
+    (item) => item.productId?._id === productTargetId || item.productId?._id === productId
+  );
+  const isWishlisted = Boolean(existingWishlistItem);
+
+  const handleWishlistToggle = async () => {
+    if (!token) {
+      toast.error("Please log in to save items to your wishlist.");
+      return;
+    }
+
+    if (existingWishlistItem) {
+      try {
+        await removeWishlistItemMutation.mutateAsync(existingWishlistItem._id);
+        toast.success("Removed from wishlist.");
+      } catch (err: any) {
+        toast.error(err?.message || "Failed to remove from wishlist.");
+      }
+    } else {
+      try {
+        await addToWishlistMutation.mutateAsync(productTargetId);
+        toast.success(`${product?.title || "Item"} added to wishlist.`);
+      } catch (err: any) {
+        toast.error(err?.message || "Failed to add to wishlist.");
+      }
+    }
+  };
 
   useEffect(() => {
     const timer = window.setInterval(() => {
@@ -248,6 +288,19 @@ export default function AuctionProductDetailsPage() {
                     priority
                     className="object-contain"
                   />
+                  <button
+                    type="button"
+                    onClick={handleWishlistToggle}
+                    disabled={addToWishlistMutation.isPending || removeWishlistItemMutation.isPending}
+                    className="absolute right-3 top-3 z-10 flex h-10 w-10 items-center justify-center rounded-full bg-white/90 backdrop-blur-sm shadow-md hover:bg-white text-slate-600 hover:text-red-500 transition-all disabled:opacity-50"
+                    title={isWishlisted ? "Remove from Wishlist" : "Add to Wishlist"}
+                  >
+                    <Heart
+                      className={`h-5 w-5 transition-colors ${
+                        isWishlisted ? "fill-red-500 text-red-500" : ""
+                      }`}
+                    />
+                  </button>
                   <div className="absolute bottom-2 right-2 rounded-[8px] bg-[#eef4ff] px-3 py-1.5 text-[11px] text-[#111827] sm:bottom-4 sm:right-4 sm:px-4 sm:py-2 sm:text-[12px]">
                     {activeImageIndex + 1}/{galleryImages.length}
                   </div>
@@ -542,18 +595,30 @@ export default function AuctionProductDetailsPage() {
                     </div>
                   )}
 
-                  <AuctionPrimaryButton
-                    className="h-11 w-full text-[13px]"
-                    disabled={bidMutation.isPending || !canBid}
-                    onClick={() => void handleBidSubmit(quickBidAmount)}
-                  >
-                    {bidMutation.isPending ? (
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                    ) : (
-                      <Lock className="h-4 w-4" />
-                    )}
-                    Quick Bid: {formatCurrency(quickBidAmount)}
-                  </AuctionPrimaryButton>
+                  <div className="flex items-center gap-2">
+                    <AuctionPrimaryButton
+                      className="h-11 flex-1 text-[13px]"
+                      disabled={bidMutation.isPending || !canBid}
+                      onClick={() => void handleBidSubmit(quickBidAmount)}
+                    >
+                      {bidMutation.isPending ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <Lock className="h-4 w-4" />
+                      )}
+                      Quick Bid: {formatCurrency(quickBidAmount)}
+                    </AuctionPrimaryButton>
+                    <button
+                      type="button"
+                      onClick={handleWishlistToggle}
+                      disabled={addToWishlistMutation.isPending || removeWishlistItemMutation.isPending}
+                      className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-[#dce6f5] bg-white text-slate-500 hover:text-red-500 transition-colors shadow-sm disabled:opacity-50"
+                      title={isWishlisted ? "Remove from Wishlist" : "Add to Wishlist"}
+                      aria-label="Wishlist"
+                    >
+                      <Heart className={`h-5 w-5 ${isWishlisted ? "fill-red-500 text-red-500" : ""}`} />
+                    </button>
+                  </div>
 
                   <div className="flex flex-col gap-2 min-[420px]:flex-row">
                     <Input

@@ -23,7 +23,7 @@ export function DashboardWishlistPage() {
   const [query, setQuery] = useState("");
 
   const filteredItems = useMemo(() => {
-    const items = wishlist.data ?? [];
+    const items = (wishlist.data ?? []).filter((item) => item.productId != null);
     if (!query.trim()) return items;
 
     const normalized = query.trim().toLowerCase();
@@ -94,7 +94,7 @@ export function DashboardWishlistPage() {
               const href =
                 product.type === "for_sale"
                   ? `/product-details/${product._id}`
-                  : `/category?searchTerm=${encodeURIComponent(product.inventoryId)}`;
+                  : `/auction-details/${product._id}`;
 
               return (
                 <article key={item._id} className="overflow-hidden rounded-2xl border border-[#dce6f5] bg-white shadow-sm">
@@ -115,8 +115,14 @@ export function DashboardWishlistPage() {
                     >
                       <Trash2 className="h-4 w-4" />
                     </button>
-                    <div className="absolute left-3 top-3 rounded-md bg-[#fff7ed] px-3 py-1 text-xs font-semibold text-[#ff6900]">
-                      Ending Soon
+                    <div
+                      className={`absolute left-3 top-3 rounded-md px-3 py-1 text-xs font-semibold ${
+                        product.type === "for_sale"
+                          ? "bg-emerald-50 text-emerald-600"
+                          : "bg-[#fff7ed] text-[#ff6900]"
+                      }`}
+                    >
+                      {product.type === "for_sale" ? "Direct Sale" : "Auction"}
                     </div>
                   </div>
 
@@ -152,7 +158,7 @@ export function DashboardWishlistPage() {
                       </Button>
                     ) : (
                       <Button asChild className="h-12 w-full rounded-xl bg-[#fe6819] hover:bg-[#e45c12]">
-                        <Link href={href}>View Details</Link>
+                        <Link href={href}>View Auction</Link>
                       </Button>
                     )}
                   </div>
