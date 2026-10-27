@@ -5,7 +5,17 @@ import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Search, ChevronUp, Star, Filter, Loader2, Heart } from "lucide-react";
+import {
+  Search,
+  ChevronUp,
+  Star,
+  Filter,
+  Loader2,
+  Heart,
+  Menu,
+  SlidersHorizontal,
+  X,
+} from "lucide-react";
 import { useSession } from "next-auth/react";
 import { toast } from "sonner";
 import {
@@ -13,6 +23,14 @@ import {
   useDashboardWishlist,
   useRemoveWishlistItem,
 } from "@/features/dashboard/hooks/useDashboardData";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetDescription,
+  SheetFooter,
+} from "@/components/ui/sheet";
 
 // --- Static Meta Configuration matching backend schema limits ---
 
@@ -162,6 +180,18 @@ export default function AuctionListingPage() {
   const [minBid, setMinBid] = useState(searchParams.get("minBid") || "");
   const [maxBid, setMaxBid] = useState(searchParams.get("maxBid") || "");
   const [currentPage, setCurrentPage] = useState(getPageParam(searchParams.get("page")));
+  const [mobileFilterOpen, setMobileFilterOpen] = useState(false);
+
+  // Active filter count computation for mobile badge indicator
+  const activeFilterCount = React.useMemo(() => {
+    let count = 0;
+    if (selectedCategory && selectedCategory !== "All Products") count++;
+    if (selectedPriceRange) count++;
+    if (selectedStatus.length > 0) count += selectedStatus.length;
+    if (selectedCondition.length > 0) count += selectedCondition.length;
+    if (minBid || maxBid) count++;
+    return count;
+  }, [selectedCategory, selectedPriceRange, selectedStatus, selectedCondition, minBid, maxBid]);
 
   // Debounce search input to lower API load
   useEffect(() => {
@@ -369,166 +399,368 @@ export default function AuctionListingPage() {
     }
   };
 
+  // Reusable Filter Content shared across Desktop Sidebar and Mobile Sheet Drawer
+  const renderFilterContent = () => (
+    <>
+      {/* Categories Box */}
+      <div className="rounded-[8px] border border-[#dce6f5] bg-white p-5 shadow-sm">
+        <h3 className="text-[14px] font-bold text-[#111827] mb-3">Categories</h3>
+        {categoriesLoading ? (
+          <div className="flex items-center justify-center py-4">
+            <Loader2 className="h-5 w-5 animate-spin text-[#ff6b1a]" />
+          </div>
+        ) : (
+          <ul className="space-y-2 text-[13px] max-h-64 overflow-y-auto pr-1">
+            {categories.map((cat) => (
+              <li 
+                key={cat} 
+                onClick={() => {
+                  setSelectedCategory(cat);
+                  setCurrentPage(1);
+                  setMobileFilterOpen(false);
+                }}
+                className={`cursor-pointer transition-colors ${
+                  selectedCategory === cat 
+                    ? "font-bold text-[#0b57d0]" 
+                    : "text-[#6b7280] hover:text-[#111827]"
+                }`}
+              >
+                {cat}
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+
+      {/* Accordion Filter Section */}
+      <div className="rounded-[8px] border border-[#dce6f5] bg-white p-5 shadow-sm space-y-6">
+        <div className="flex items-center justify-between border-b border-[#f1f5f9] pb-2">
+          <h3 className="text-[14px] font-bold text-[#111827] flex items-center gap-1.5">
+            <Filter className="h-4 w-4 text-slate-500" /> Filters
+          </h3>
+          <button onClick={handleClearAll} className="text-[11px] font-medium text-[#0b57d0] hover:underline">
+            Clear All
+          </button>
+        </div>
+
+        {/* Price Ranges Radio selection */}
+        <div>
+          <div className="flex items-center justify-between text-[13px] font-bold text-[#111827] mb-3">
+            <span>Price Range</span>
+            <ChevronUp className="h-4 w-4 text-[#9ca3af]" />
+          </div>
+          <div className="space-y-2.5">
+            {retailValues.map((v) => (
+              <label key={v.id} className="flex items-center gap-2.5 text-[12px] text-[#4b5563] cursor-pointer">
+                <input 
+                  type="radio"
+                  name="priceRange"
+                  checked={selectedPriceRange === v.apiValue}
+                  onChange={() => {
+                    setSelectedPriceRange(v.apiValue);
+                    setCurrentPage(1);
+                  }}
+                  className="h-4 w-4 border-[#dce6f5] text-[#ff6b1a] focus:ring-[#ff6b1a]" 
+                />
+                <span>{v.label}</span>
+              </label>
+            ))}
+          </div>
+        </div>
+
+        {/* Status checkboxes */}
+        <div>
+          <div className="flex items-center justify-between text-[13px] font-bold text-[#111827] mb-3">
+            <span>Listing Type / Status</span>
+            <ChevronUp className="h-4 w-4 text-[#9ca3af]" />
+          </div>
+          <div className="space-y-2.5">
+            {statuses.map((s) => (
+              <label key={s.id} className="flex items-center gap-2.5 text-[12px] text-[#4b5563] cursor-pointer w-full">
+                <input 
+                  type="checkbox" 
+                  checked={selectedStatus.includes(s.id)}
+                  onChange={() => handleCheckboxChange(s.id, selectedStatus, setSelectedStatus)}
+                  className="h-4 w-4 rounded border-[#dce6f5] text-[#ff6b1a] focus:ring-[#ff6b1a]" 
+                />
+                <span>{s.label}</span>
+              </label>
+            ))}
+          </div>
+        </div>
+
+        {/* Condition Section */}
+        <div>
+          <div className="flex items-center justify-between text-[13px] font-bold text-[#111827] mb-3">
+            <span>Condition</span>
+            <ChevronUp className="h-4 w-4 text-[#9ca3af]" />
+          </div>
+          <div className="space-y-2.5">
+            {conditions.map((c) => (
+              <label key={c.id} className="flex items-center gap-2.5 text-[12px] text-[#4b5563] cursor-pointer w-full">
+                <input 
+                  type="checkbox" 
+                  checked={selectedCondition.includes(c.id)}
+                  onChange={() => handleCheckboxChange(c.id, selectedCondition, setSelectedCondition)}
+                  className="h-4 w-4 rounded border-[#dce6f5] text-[#ff6b1a] focus:ring-[#ff6b1a]"
+                />
+                <span>{c.label}</span>
+              </label>
+            ))}
+          </div>
+        </div>
+
+        {/* Bid pricing scale limits */}
+        <div>
+          <div className="flex items-center justify-between text-[13px] font-bold text-[#111827] mb-3">
+            <span>Filter by Bids</span>
+            <ChevronUp className="h-4 w-4 text-[#9ca3af]" />
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="relative flex-1">
+              <span className="absolute left-2.5 top-2.5 text-[12px] text-[#9ca3af]">$</span>
+              <input 
+                type="number" 
+                placeholder="Min" 
+                value={minBid}
+                onChange={(e) => {
+                  setMinBid(e.target.value);
+                  setCurrentPage(1);
+                }}
+                className="w-full rounded-[4px] border border-[#dce6f5] py-2 pl-6 pr-2 text-[12px] focus:outline-none focus:border-[#ff6b1a]"
+              />
+            </div>
+            <span className="text-[#9ca3af] text-[12px]">-</span>
+            <div className="relative flex-1">
+              <span className="absolute left-2.5 top-2.5 text-[12px] text-[#9ca3af]">$</span>
+              <input 
+                type="number" 
+                placeholder="Max" 
+                value={maxBid}
+                onChange={(e) => {
+                  setMaxBid(e.target.value);
+                  setCurrentPage(1);
+                }}
+                className="w-full rounded-[4px] border border-[#dce6f5] py-2 pl-6 pr-2 text-[12px] focus:outline-none focus:border-[#ff6b1a]"
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+    </>
+  );
+
   return (
-    <main className="min-h-screen bg-[#f7f9fc] py-8 font-sans antialiased text-[#1e293b]">
+    <main className="min-h-screen bg-[#f7f9fc] py-6 sm:py-8 font-sans antialiased text-[#1e293b]">
+      {/* ================= MOBILE FILTER DRAWER (SHEET) ================= */}
+      <Sheet open={mobileFilterOpen} onOpenChange={setMobileFilterOpen}>
+        <SheetContent
+          side="left"
+          className="w-[85vw] max-w-[340px] p-0 flex flex-col h-full bg-[#f8fafc] z-[100]"
+        >
+          <SheetHeader className="p-4 pr-12 border-b border-[#e2e8f0] bg-white flex flex-row items-center justify-between shrink-0">
+            <SheetTitle className="text-base font-bold text-[#111827] flex items-center gap-2">
+              <Menu className="h-4 w-4 text-[#ff6b1a]" />
+              <span>Filters</span>
+              {activeFilterCount > 0 && (
+                <span className="rounded-full bg-[#ff6b1a]/10 text-[#ff6b1a] px-2 py-0.5 text-xs font-bold">
+                  {activeFilterCount}
+                </span>
+              )}
+            </SheetTitle>
+            {activeFilterCount > 0 && (
+              <button
+                type="button"
+                onClick={handleClearAll}
+                className="text-xs font-semibold text-[#0b57d0] hover:underline mr-2"
+              >
+                Clear All
+              </button>
+            )}
+          </SheetHeader>
+          <SheetDescription className="sr-only">
+            Filter auction products and direct sale items by category, status, condition, and price.
+          </SheetDescription>
+
+          <div className="flex-1 overflow-y-auto p-4 space-y-4">
+            {renderFilterContent()}
+          </div>
+
+          <SheetFooter className="p-4 border-t border-[#e2e8f0] bg-white shrink-0">
+            <button
+              type="button"
+              onClick={() => setMobileFilterOpen(false)}
+              className="w-full rounded-[6px] bg-[#ff6b1a] py-2.5 text-center text-[13px] font-bold text-white shadow hover:bg-[#e55a00] transition-colors"
+            >
+              View {meta?.total !== undefined ? `${meta.total} ` : ""}Results
+            </button>
+          </SheetFooter>
+        </SheetContent>
+      </Sheet>
+
       <div className="container mx-auto px-4 max-w-[1400px]">
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-[280px_1fr]">
           
-          {/* ================= LEFT SIDEBAR FILTERS ================= */}
-          <aside className="space-y-4">
-            
-            {/* Categories Box */}
-            <div className="rounded-[8px] border border-[#dce6f5] bg-white p-5 shadow-sm">
-              <h3 className="text-[14px] font-bold text-[#111827] mb-3">Categories</h3>
-              {categoriesLoading ? (
-                <div className="flex items-center justify-center py-4">
-                  <Loader2 className="h-5 w-5 animate-spin text-[#ff6b1a]" />
-                </div>
-              ) : (
-                <ul className="space-y-2 text-[13px]">
-                  {categories.map((cat) => (
-                    <li 
-                      key={cat} 
-                      onClick={() => {
-                        setSelectedCategory(cat);
-                        setCurrentPage(1);
-                      }}
-                      className={`cursor-pointer transition-colors ${
-                        selectedCategory === cat 
-                          ? "font-bold text-[#0b57d0]" 
-                          : "text-[#6b7280] hover:text-[#111827]"
-                      }`}
-                    >
-                      {cat}
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </div>
-
-            {/* Accordion Filter Section */}
-            <div className="rounded-[8px] border border-[#dce6f5] bg-white p-5 shadow-sm space-y-6">
-              <div className="flex items-center justify-between border-b border-[#f1f5f9] pb-2">
-                <h3 className="text-[14px] font-bold text-[#111827] flex items-center gap-1.5">
-                  <Filter className="h-4 w-4 text-slate-500" /> Filters
-                </h3>
-                <button onClick={handleClearAll} className="text-[11px] font-medium text-[#0b57d0] hover:underline">
-                  Clear All
-                </button>
-              </div>
-
-              {/* Price Ranges Radio selection */}
-              <div>
-                <div className="flex items-center justify-between text-[13px] font-bold text-[#111827] mb-3">
-                  <span>Price Range</span>
-                  <ChevronUp className="h-4 w-4 text-[#9ca3af]" />
-                </div>
-                <div className="space-y-2.5">
-                  {retailValues.map((v) => (
-                    <label key={v.id} className="flex items-center gap-2.5 text-[12px] text-[#4b5563] cursor-pointer">
-                      <input 
-                        type="radio"
-                        name="priceRange"
-                        checked={selectedPriceRange === v.apiValue}
-                        onChange={() => {
-                          setSelectedPriceRange(v.apiValue);
-                          setCurrentPage(1);
-                        }}
-                        className="h-4 w-4 border-[#dce6f5] text-[#ff6b1a] focus:ring-[#ff6b1a]" 
-                      />
-                      <span>{v.label}</span>
-                    </label>
-                  ))}
-                </div>
-              </div>
-
-              {/* Status checkboxes */}
-              <div>
-                <div className="flex items-center justify-between text-[13px] font-bold text-[#111827] mb-3">
-                  <span>Listing Type / Status</span>
-                  <ChevronUp className="h-4 w-4 text-[#9ca3af]" />
-                </div>
-                <div className="space-y-2.5">
-                  {statuses.map((s) => (
-                    <label key={s.id} className="flex items-center gap-2.5 text-[12px] text-[#4b5563] cursor-pointer w-full">
-                      <input 
-                        type="checkbox"
-                        checked={selectedStatus.includes(s.id)}
-                        onChange={() => handleCheckboxChange(s.id, selectedStatus, setSelectedStatus)}
-                        className="h-4 w-4 rounded border-[#dce6f5] text-[#ff6b1a] focus:ring-[#ff6b1a]" 
-                      />
-                      <span>{s.label}</span>
-                    </label>
-                  ))}
-                </div>
-              </div>
-
-              {/* Condition Section */}
-              <div>
-                <div className="flex items-center justify-between text-[13px] font-bold text-[#111827] mb-3">
-                  <span>Condition</span>
-                  <ChevronUp className="h-4 w-4 text-[#9ca3af]" />
-                </div>
-                <div className="space-y-2.5">
-                  {conditions.map((c) => (
-                    <label key={c.id} className="flex items-center gap-2.5 text-[12px] text-[#4b5563] cursor-pointer w-full">
-                      <input 
-                        type="checkbox" 
-                        checked={selectedCondition.includes(c.id)}
-                        onChange={() => handleCheckboxChange(c.id, selectedCondition, setSelectedCondition)}
-                        className="h-4 w-4 rounded border-[#dce6f5] text-[#ff6b1a] focus:ring-[#ff6b1a]"
-                      />
-                      <span>{c.label}</span>
-                    </label>
-                  ))}
-                </div>
-              </div>
-
-              {/* Bid pricing scale limits */}
-              <div>
-                <div className="flex items-center justify-between text-[13px] font-bold text-[#111827] mb-3">
-                  <span>Filter by Bids</span>
-                  <ChevronUp className="h-4 w-4 text-[#9ca3af]" />
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="relative flex-1">
-                    <span className="absolute left-2.5 top-2.5 text-[12px] text-[#9ca3af]">$</span>
-                    <input 
-                      type="number" 
-                      placeholder="Min" 
-                      value={minBid}
-                      onChange={(e) => {
-                        setMinBid(e.target.value);
-                        setCurrentPage(1);
-                      }}
-                      className="w-full rounded-[4px] border border-[#dce6f5] py-2 pl-6 pr-2 text-[12px] focus:outline-none focus:border-[#ff6b1a]"
-                    />
-                  </div>
-                  <span className="text-[#9ca3af] text-[12px]">-</span>
-                  <div className="relative flex-1">
-                    <span className="absolute left-2.5 top-2.5 text-[12px] text-[#9ca3af]">$</span>
-                    <input 
-                      type="number" 
-                      placeholder="Max" 
-                      value={maxBid}
-                      onChange={(e) => {
-                        setMaxBid(e.target.value);
-                        setCurrentPage(1);
-                      }}
-                      className="w-full rounded-[4px] border border-[#dce6f5] py-2 pl-6 pr-2 text-[12px] focus:outline-none focus:border-[#ff6b1a]"
-                    />
-                  </div>
-                </div>
-              </div>
-            </div>
+          {/* ================= LEFT SIDEBAR FILTERS (DESKTOP) ================= */}
+          <aside className="hidden lg:block space-y-4">
+            {renderFilterContent()}
           </aside>
 
           {/* ================= RIGHT MAIN PRODUCT GRID ================= */}
           <section className="space-y-4">
             
-            {/* Top Row with Pagination stats & Search Form */}
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-              <div className="text-[13px] text-[#4b5563] self-start sm:self-auto">
+            {/* Mobile Controls Bar (< lg): Search, Filter hamburger trigger, and Active Filter Chips */}
+            <div className="flex flex-col gap-3 lg:hidden">
+              <form onSubmit={handleManualSearch} className="flex w-full items-center gap-2">
+                <div className="relative flex-1">
+                  <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#9ca3af]" />
+                  <input
+                    type="text"
+                    placeholder="Search products, brands, conditions..."
+                    value={searchInput}
+                    onChange={(e) => setSearchInput(e.target.value)}
+                    className="w-full rounded-[6px] border border-[#dce6f5] bg-white py-2 pl-9 pr-3 text-[13px] focus:outline-none focus:border-[#ff6b1a] shadow-sm"
+                  />
+                </div>
+                <button 
+                  type="submit"
+                  className="rounded-[6px] bg-[#ff6b1a] px-4 py-2 text-[13px] font-bold text-white transition-colors hover:bg-[#e55a00]"
+                >
+                  Search
+                </button>
+              </form>
+
+              <div className="flex items-center justify-between gap-2">
+                <div className="text-[12px] text-[#6b7280]">
+                  {isLoading ? (
+                    <span>Loading inventories...</span>
+                  ) : (
+                    <span>
+                      Showing <span className="font-bold text-[#111827]">{(currentPage - 1) * 12 + 1} - {Math.min(currentPage * 12, meta?.total || 0)}</span> of <span className="font-bold text-[#111827]">{meta?.total || 0}</span> lots
+                    </span>
+                  )}
+                </div>
+
+                {/* Hamburger Filter Trigger Button */}
+                <button
+                  type="button"
+                  onClick={() => setMobileFilterOpen(true)}
+                  className="inline-flex items-center gap-2 rounded-[6px] border border-[#dce6f5] bg-white px-3 py-1.5 text-[12px] font-semibold text-[#111827] shadow-sm hover:bg-[#f8fafc] active:scale-95 transition-all"
+                  aria-label="Open filters"
+                >
+                  <Menu className="h-4 w-4 text-[#ff6b1a]" />
+                  <span>Filters</span>
+                  {activeFilterCount > 0 && (
+                    <span className="flex h-4 min-w-4 items-center justify-center rounded-full bg-[#ff6b1a] px-1 text-[10px] font-bold text-white">
+                      {activeFilterCount}
+                    </span>
+                  )}
+                </button>
+              </div>
+
+              {/* Active filter pills for quick preview and removal on mobile */}
+              {activeFilterCount > 0 && (
+                <div className="flex flex-wrap items-center gap-1.5 pt-0.5">
+                  {selectedCategory && selectedCategory !== "All Products" && (
+                    <span className="inline-flex items-center gap-1 rounded-full bg-blue-50 border border-blue-200 px-2.5 py-0.5 text-[11px] font-semibold text-blue-700">
+                      Category: {selectedCategory}
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setSelectedCategory("All Products");
+                          setCurrentPage(1);
+                        }}
+                        className="hover:text-blue-900"
+                        aria-label={`Remove ${selectedCategory} filter`}
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
+                    </span>
+                  )}
+
+                  {selectedPriceRange && (
+                    <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 border border-amber-200 px-2.5 py-0.5 text-[11px] font-semibold text-amber-700">
+                      Price: {retailValues.find((v) => v.apiValue === selectedPriceRange)?.label || selectedPriceRange}
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setSelectedPriceRange(null);
+                          setCurrentPage(1);
+                        }}
+                        className="hover:text-amber-900"
+                        aria-label="Remove price range filter"
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
+                    </span>
+                  )}
+
+                  {selectedStatus.map((statusId) => (
+                    <span
+                      key={statusId}
+                      className="inline-flex items-center gap-1 rounded-full bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 text-[11px] font-semibold text-emerald-700"
+                    >
+                      {statuses.find((s) => s.id === statusId)?.label || statusId}
+                      <button
+                        type="button"
+                        onClick={() => handleCheckboxChange(statusId, selectedStatus, setSelectedStatus)}
+                        className="hover:text-emerald-900"
+                        aria-label={`Remove ${statusId} filter`}
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
+                    </span>
+                  ))}
+
+                  {selectedCondition.map((condId) => (
+                    <span
+                      key={condId}
+                      className="inline-flex items-center gap-1 rounded-full bg-purple-50 border border-purple-200 px-2.5 py-0.5 text-[11px] font-semibold text-purple-700"
+                    >
+                      {conditions.find((c) => c.id === condId)?.label || condId}
+                      <button
+                        type="button"
+                        onClick={() => handleCheckboxChange(condId, selectedCondition, setSelectedCondition)}
+                        className="hover:text-purple-900"
+                        aria-label={`Remove ${condId} filter`}
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
+                    </span>
+                  ))}
+
+                  {(minBid || maxBid) && (
+                    <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 border border-slate-200 px-2.5 py-0.5 text-[11px] font-semibold text-slate-700">
+                      Bid: ${minBid || "0"} - ${maxBid || "∞"}
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setMinBid("");
+                          setMaxBid("");
+                          setCurrentPage(1);
+                        }}
+                        className="hover:text-slate-900"
+                        aria-label="Remove bid range filter"
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
+                    </span>
+                  )}
+
+                  <button
+                    type="button"
+                    onClick={handleClearAll}
+                    className="text-[11px] font-bold text-[#ff6b1a] hover:underline px-1"
+                  >
+                    Clear All
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* Desktop Top Row with Pagination stats & Search Form (hidden on < lg) */}
+            <div className="hidden lg:flex items-center justify-between gap-4">
+              <div className="text-[13px] text-[#4b5563]">
                 {isLoading ? (
                   <span>Fetching total inventories count...</span>
                 ) : (
@@ -537,7 +769,7 @@ export default function AuctionListingPage() {
                   </span>
                 )}
               </div>
-              <form onSubmit={handleManualSearch} className="flex w-full sm:max-w-[580px] items-center gap-2">
+              <form onSubmit={handleManualSearch} className="flex w-full max-w-[580px] items-center gap-2">
                 <div className="relative flex-1">
                   <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#9ca3af]" />
                   <input
